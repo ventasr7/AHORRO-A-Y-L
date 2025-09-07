@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Meta de Ahorro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .progress-bar-fill {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-2xl shadow-2xl p-6 md:p-10 border border-gray-700">
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-300 via-green-400 to-green-500">
+                Meta de Ahorro
+            </h1>
+            <p class="text-gray-400 mt-2">
+                ¡Camino a los 
+                <span id="goal-display" class="font-bold text-green-400 cursor-pointer hover:underline" title="Editar meta">$200,000</span>!
+                <svg id="edit-goal-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 cursor-pointer text-gray-500 hover:text-white transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z" />
+                </svg>
+            </p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-2 text-sm">
+                <span class="text-gray-300 font-medium">Progreso</span>
+                <span id="progress-percentage" class="font-bold text-green-400">0%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-4">
+                <div id="progress-bar" class="bg-gradient-to-r from-green-400 to-teal-500 h-4 rounded-full progress-bar-fill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Financial Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-center">
+            <div class="bg-gray-700/50 p-4 rounded-lg">
+                <p class="text-sm text-gray-400 mb-1">Ahorrado</p>
+                <p id="saved-amount" class="text-2xl font-bold text-white">$0.00</p>
+            </div>
+            <div class="bg-gray-700/50 p-4 rounded-lg">
+                <p class="text-sm text-gray-400 mb-1">Restante</p>
+                <p id="remaining-amount" class="text-2xl font-bold text-white">$200,000.00</p>
+            </div>
+            <div class="bg-gray-700/50 p-4 rounded-lg">
+                <p class="text-sm text-gray-400 mb-1">Meta</p>
+                <p id="goal-amount" class="text-2xl font-bold text-gray-300">$200,000.00</p>
+            </div>
+        </div>
+
+        <!-- Input Form -->
+        <div class="flex flex-col sm:flex-row gap-4 mb-8">
+            <input type="number" id="deposit-amount" placeholder="Ingresa un monto" class="w-full bg-gray-700 text-white placeholder-gray-400 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition">
+            <button id="add-button" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                Agregar Ahorro
+            </button>
+        </div>
+        
+        <!-- Message Box -->
+        <div id="message-box" class="hidden text-center p-3 mb-6 rounded-lg"></div>
+
+        <!-- Transaction History -->
+        <div class="mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gray-300">Historial de Depósitos</h2>
+            <div id="transaction-list" class="max-h-48 overflow-y-auto bg-gray-900/50 p-4 rounded-lg space-y-2">
+                <p class="text-gray-500 text-center">Aún no hay depósitos.</p>
+            </div>
+        </div>
+
+        <!-- Reset Button -->
+        <div class="text-center">
+            <button id="reset-button" class="text-sm text-gray-500 hover:text-red-400 transition">
+                Restablecer todo
+            </button>
+        </div>
+    </div>
+    
+    <!-- Reset Confirmation Modal -->
+    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-800 rounded-lg p-6 shadow-xl text-center">
+            <h3 class="text-lg font-bold mb-4">¿Estás seguro?</h3>
+            <p class="text-gray-400 mb-6">Se borrará todo tu progreso. Esta acción no se puede deshacer.</p>
+            <div class="flex justify-center gap-4">
+                <button id="confirm-reset" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Sí, borrar</button>
+                <button id="cancel-reset" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Goal Modal -->
+    <div id="edit-goal-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-800 rounded-lg p-6 shadow-xl w-full max-w-sm">
+            <h3 class="text-lg font-bold mb-4">Establecer Nueva Meta</h3>
+            <p class="text-gray-400 mb-4">Ingresa tu nueva meta de ahorro.</p>
+            <input type="number" id="new-goal-amount" placeholder="Ej: 50000" class="w-full bg-gray-700 text-white placeholder-gray-400 border border-gray-600 rounded-lg px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-green-500 transition">
+            <div class="flex justify-end gap-4">
+                <button id="cancel-edit-goal" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+                <button id="confirm-edit-goal" class="bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-2 px-4 rounded-lg">Guardar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Transaction Modal -->
+    <div id="delete-tx-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-800 rounded-lg p-6 shadow-xl text-center">
+            <h3 class="text-lg font-bold mb-4">Eliminar Depósito</h3>
+            <p class="text-gray-400 mb-6">¿Estás seguro? Esta acción no se puede deshacer.</p>
+            <div class="flex justify-center gap-4">
+                <button id="confirm-delete-tx" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Sí, eliminar</button>
+                <button id="cancel-delete-tx" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let goalAmount = 200000; // Default goal
+        let savedAmount = 0;
+        let transactions = [];
+        let transactionIdToDelete = null;
+
+        // DOM Elements
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercentage = document.getElementById('progress-percentage');
+        const savedAmountEl = document.getElementById('saved-amount');
+        const remainingAmountEl = document.getElementById('remaining-amount');
+        const goalAmountEl = document.getElementById('goal-amount');
+        const depositAmountInput = document.getElementById('deposit-amount');
+        const addButton = document.getElementById('add-button');
+        const transactionList = document.getElementById('transaction-list');
+        const resetButton = document.getElementById('reset-button');
+        const messageBox = document.getElementById('message-box');
+        const goalDisplay = document.getElementById('goal-display');
+        const editGoalIcon = document.getElementById('edit-goal-icon');
+        
+        // Modals
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const confirmResetButton = document.getElementById('confirm-reset');
+        const cancelResetButton = document.getElementById('cancel-reset');
+        
+        const editGoalModal = document.getElementById('edit-goal-modal');
+        const newGoalAmountInput = document.getElementById('new-goal-amount');
+        const confirmEditGoalButton = document.getElementById('confirm-edit-goal');
+        const cancelEditGoalButton = document.getElementById('cancel-edit-goal');
+
+        const deleteTxModal = document.getElementById('delete-tx-modal');
+        const confirmDeleteTxButton = document.getElementById('confirm-delete-tx');
+        const cancelDeleteTxButton = document.getElementById('cancel-delete-tx');
+
+        // Load data from localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('savingsTracker');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                goalAmount = data.goalAmount || 200000;
+                savedAmount = data.savedAmount || 0;
+                transactions = data.transactions || [];
+            }
+            updateUI();
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            const data = { goalAmount, savedAmount, transactions };
+            localStorage.setItem('savingsTracker', JSON.stringify(data));
+        }
+
+        // Format currency
+        const currencyFormatter = new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' });
+
+        // Update UI function
+        function updateUI() {
+            const remainingAmount = goalAmount - savedAmount;
+            const progress = (savedAmount > 0 && goalAmount > 0) ? (savedAmount / goalAmount) * 100 : 0;
+            const displayProgress = Math.min(progress, 100);
+
+            savedAmountEl.textContent = currencyFormatter.format(savedAmount);
+            remainingAmountEl.textContent = currencyFormatter.format(remainingAmount > 0 ? remainingAmount : 0);
+            goalAmountEl.textContent = currencyFormatter.format(goalAmount);
+            goalDisplay.textContent = currencyFormatter.format(goalAmount);
+
+            progressBar.style.width = `${displayProgress}%`;
+            progressPercentage.textContent = `${progress.toFixed(2)}%`;
+
+            renderTransactions();
+        }
+        
+        // Render transactions
+        function renderTransactions() {
+            transactionList.innerHTML = '';
+            if (transactions.length === 0) {
+                transactionList.innerHTML = '<p class="text-gray-500 text-center">Aún no hay depósitos.</p>';
+                return;
+            }
+            [...transactions].reverse().forEach(tx => {
+                const txElement = document.createElement('div');
+                txElement.className = 'flex justify-between items-center bg-gray-800 p-2 rounded-md text-sm transition-transform duration-200 hover:scale-[1.02] hover:bg-gray-700/80';
+                txElement.innerHTML = `
+                    <div class="flex-grow">
+                        <span class="text-gray-300">${new Date(tx.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                        <span class="font-bold text-green-400 block sm:inline sm:ml-4">+ ${currencyFormatter.format(tx.amount)}</span>
+                    </div>
+                    <button class="delete-tx-btn p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-full transition" data-tx-id="${tx.id}" title="Eliminar depósito">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                `;
+                transactionList.appendChild(txElement);
+                
+                txElement.querySelector('.delete-tx-btn').addEventListener('click', (e) => {
+                    transactionIdToDelete = Number(e.currentTarget.dataset.txId);
+                    showDeleteTxModal();
+                });
+            });
+        }
+        
+        function showMessage(message, type = 'success') {
+            messageBox.textContent = message;
+            messageBox.className = `p-3 mb-6 rounded-lg text-center ${type === 'success' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => { messageBox.classList.add('hidden'); }, 3000);
+        }
+
+        function addDeposit() {
+            const amount = parseFloat(depositAmountInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                showMessage('Por favor, ingresa un monto válido.', 'error');
+                return;
+            }
+            const wasGoalReached = savedAmount >= goalAmount;
+            savedAmount += amount;
+            transactions.push({ id: Date.now(), amount, date: new Date().toISOString() });
+            depositAmountInput.value = '';
+            showMessage(`¡${currencyFormatter.format(amount)} agregados con éxito!`, 'success');
+            updateUI();
+            saveData();
+            if (savedAmount >= goalAmount && !wasGoalReached) { celebrate(); }
+        }
+        
+        function celebrate() {
+            showMessage('¡Felicidades! ¡Has alcanzado tu meta!', 'success');
+            confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+        }
+
+        function resetProgress() {
+            savedAmount = 0;
+            transactions = [];
+            localStorage.setItem('savingsTracker', JSON.stringify({ goalAmount, savedAmount: 0, transactions: [] }));
+            updateUI();
+            hideResetModal();
+            showMessage('Tu progreso ha sido restablecido.', 'success');
+        }
+        
+        function updateGoal() {
+            const newGoal = parseFloat(newGoalAmountInput.value);
+            if (isNaN(newGoal) || newGoal <= 0) {
+                showMessage('Por favor, ingresa una meta válida y positiva.', 'error');
+                return;
+            }
+            goalAmount = newGoal;
+            showMessage(`¡Tu nueva meta es ${currencyFormatter.format(goalAmount)}!`, 'success');
+            hideEditGoalModal();
+            updateUI();
+            saveData();
+        }
+
+        function deleteTransaction() {
+            if (transactionIdToDelete === null) return;
+            const txIndex = transactions.findIndex(tx => tx.id === transactionIdToDelete);
+            if (txIndex > -1) {
+                const txAmount = transactions[txIndex].amount;
+                savedAmount -= txAmount;
+                transactions.splice(txIndex, 1);
+                showMessage(`Depósito de ${currencyFormatter.format(txAmount)} eliminado.`, 'success');
+                updateUI();
+                saveData();
+            }
+            hideDeleteTxModal();
+            transactionIdToDelete = null;
+        }
+
+        // Modal functions
+        function showResetModal() { confirmationModal.classList.remove('hidden'); }
+        function hideResetModal() { confirmationModal.classList.add('hidden'); }
+        function showEditGoalModal() { 
+            newGoalAmountInput.value = goalAmount;
+            editGoalModal.classList.remove('hidden'); 
+        }
+        function hideEditGoalModal() { editGoalModal.classList.add('hidden'); }
+        function showDeleteTxModal() { deleteTxModal.classList.remove('hidden'); }
+        function hideDeleteTxModal() { deleteTxModal.classList.add('hidden'); }
+
+        // Event Listeners
+        addButton.addEventListener('click', addDeposit);
+        depositAmountInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addDeposit(); });
+        
+        resetButton.addEventListener('click', showResetModal);
+        confirmResetButton.addEventListener('click', resetProgress);
+        cancelResetButton.addEventListener('click', hideResetModal);
+        
+        goalDisplay.addEventListener('click', showEditGoalModal);
+        editGoalIcon.addEventListener('click', showEditGoalModal);
+        confirmEditGoalButton.addEventListener('click', updateGoal);
+        cancelEditGoalButton.addEventListener('click', hideEditGoalModal);
+        newGoalAmountInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') updateGoal(); });
+
+        confirmDeleteTxButton.addEventListener('click', deleteTransaction);
+        cancelDeleteTxButton.addEventListener('click', hideDeleteTxModal);
+
+        // Initial load
+        loadData();
+    });
+</script>
+
+</body>
+</html>
+
