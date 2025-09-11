@@ -3,347 +3,376 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Meta de Ahorro</title>
+    <title>Juego de Trivia por Niveles</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        .progress-bar-fill {
-            transition: width 0.5s ease-in-out;
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+        .level-btn {
+            transition: all 0.3s ease;
+        }
+        .level-btn.locked {
+            cursor: not-allowed;
+        }
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .correct {
+            background-color: #22c55e !important; /* green-500 */
+            color: white !important;
+            border-color: #16a34a !important; /* green-600 */
+        }
+        .incorrect {
+            background-color: #ef4444 !important; /* red-500 */
+            color: white !important;
+            border-color: #dc2626 !important; /* red-600 */
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white min-h-screen flex items-center justify-center p-4">
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-2xl bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-2xl shadow-2xl p-6 md:p-10 border border-gray-700">
+    <div id="app" class="w-full max-w-2xl mx-auto">
 
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-300 via-green-400 to-green-500">
-                Meta de Ahorro
-            </h1>
-            <p class="text-gray-400 mt-2">
-                ¡Camino a los 
-                <span id="goal-display" class="font-bold text-green-400 cursor-pointer hover:underline" title="Editar meta">$200,000</span>!
-                <svg id="edit-goal-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 cursor-pointer text-gray-500 hover:text-white transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z" />
-                </svg>
-            </p>
-        </div>
-
-        <!-- Progress Bar -->
-        <div class="mb-8">
-            <div class="flex justify-between items-center mb-2 text-sm">
-                <span class="text-gray-300 font-medium">Progreso</span>
-                <span id="progress-percentage" class="font-bold text-green-400">0%</span>
-            </div>
-            <div class="w-full bg-gray-700 rounded-full h-4">
-                <div id="progress-bar" class="bg-gradient-to-r from-green-400 to-teal-500 h-4 rounded-full progress-bar-fill" style="width: 0%"></div>
+        <!-- Pantalla de Selección de Nivel -->
+        <div id="level-selection-screen" class="screen active text-center">
+            <h1 class="text-4xl font-bold mb-2 text-cyan-400">Trivia de Conocimiento</h1>
+            <p class="text-slate-400 mb-8">Selecciona un nivel para comenzar</p>
+            <div id="level-buttons" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                <!-- Los botones de nivel se generan aquí con JS -->
             </div>
         </div>
 
-        <!-- Financial Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-center">
-            <div class="bg-gray-700/50 p-4 rounded-lg">
-                <p class="text-sm text-gray-400 mb-1">Ahorrado</p>
-                <p id="saved-amount" class="text-2xl font-bold text-white">$0.00</p>
-            </div>
-            <div class="bg-gray-700/50 p-4 rounded-lg">
-                <p class="text-sm text-gray-400 mb-1">Restante</p>
-                <p id="remaining-amount" class="text-2xl font-bold text-white">$200,000.00</p>
-            </div>
-            <div class="bg-gray-700/50 p-4 rounded-lg">
-                <p class="text-sm text-gray-400 mb-1">Meta</p>
-                <p id="goal-amount" class="text-2xl font-bold text-gray-300">$200,000.00</p>
-            </div>
-        </div>
-
-        <!-- Input Form -->
-        <div class="flex flex-col sm:flex-row gap-4 mb-8">
-            <input type="number" id="deposit-amount" placeholder="Ingresa un monto" class="w-full bg-gray-700 text-white placeholder-gray-400 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition">
-            <button id="add-button" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
-                Agregar Ahorro
-            </button>
-        </div>
-        
-        <!-- Message Box -->
-        <div id="message-box" class="hidden text-center p-3 mb-6 rounded-lg"></div>
-
-        <!-- Transaction History -->
-        <div class="mb-6">
-            <h2 class="text-xl font-bold mb-4 text-gray-300">Historial de Depósitos</h2>
-            <div id="transaction-list" class="max-h-48 overflow-y-auto bg-gray-900/50 p-4 rounded-lg space-y-2">
-                <p class="text-gray-500 text-center">Aún no hay depósitos.</p>
-            </div>
-        </div>
-        
-        <!-- Action Buttons -->
-        <div class="flex justify-center items-center gap-6">
-            <button id="help-button" class="text-sm text-green-400 hover:text-green-300 transition">
-                Ayudar a la meta
-            </button>
-            <button id="reset-button" class="text-sm text-gray-500 hover:text-red-400 transition">
-                Restablecer todo
-            </button>
-        </div>
-    </div>
-    
-    <!-- Modals -->
-    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
-        <!-- Reset Confirmation Modal -->
-        <div id="confirmation-modal" class="bg-gray-800 rounded-lg p-6 shadow-xl text-center hidden">
-            <h3 class="text-lg font-bold mb-4">¿Estás seguro?</h3>
-            <p class="text-gray-400 mb-6">Se borrará todo tu progreso. Esta acción no se puede deshacer.</p>
-            <div class="flex justify-center gap-4">
-                <button id="confirm-reset" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Sí, borrar</button>
-                <button class="cancel-modal-btn bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Cancelar</button>
-            </div>
-        </div>
-        
-        <!-- Edit Goal Modal -->
-        <div id="edit-goal-modal" class="bg-gray-800 rounded-lg p-6 shadow-xl w-full max-w-sm hidden">
-            <h3 class="text-lg font-bold mb-4">Establecer Nueva Meta</h3>
-            <p class="text-gray-400 mb-4">Ingresa tu nueva meta de ahorro.</p>
-            <input type="number" id="new-goal-amount" placeholder="Ej: 50000" class="w-full bg-gray-700 text-white placeholder-gray-400 border border-gray-600 rounded-lg px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-green-500 transition">
-            <div class="flex justify-end gap-4">
-                <button class="cancel-modal-btn bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
-                <button id="confirm-edit-goal" class="bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-2 px-4 rounded-lg">Guardar</button>
-            </div>
-        </div>
-        
-        <!-- Delete Transaction Modal -->
-        <div id="delete-tx-modal" class="bg-gray-800 rounded-lg p-6 shadow-xl text-center hidden">
-            <h3 class="text-lg font-bold mb-4">Eliminar Depósito</h3>
-            <p class="text-gray-400 mb-6">¿Estás seguro? Esta acción no se puede deshacer.</p>
-            <div class="flex justify-center gap-4">
-                <button id="confirm-delete-tx" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Sí, eliminar</button>
-                <button class="cancel-modal-btn bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Cancelar</button>
-            </div>
-        </div>
-        
-        <!-- Help Modal -->
-        <div id="help-modal" class="bg-gray-800 rounded-lg p-8 shadow-xl text-center w-full max-w-md hidden">
-            <h3 class="text-2xl font-bold mb-4 text-green-400">¡Gracias por ayudar!</h3>
-            <p class="text-gray-400 mb-6">Puedes realizar tu contribución a través de una transferencia a la siguiente cuenta de Banreservas:</p>
-            <div class="bg-gray-900/50 text-left p-4 rounded-lg mb-6 border border-gray-700">
-                <p class="text-gray-500 text-sm">A nombre de:</p>
-                <p class="text-white text-lg font-mono tracking-wider mb-3">**[PON TU NOMBRE AQUÍ]**</p>
-                <p class="text-gray-500 text-sm">Número de Cuenta:</p>
-                <p class="text-white text-lg font-mono tracking-wider">**[PON TU NÚMERO DE CUENTA AQUÍ]**</p>
-            </div>
-            <p class="text-sm text-gray-500 mb-6">Una vez realizada la transferencia, el dueño de la meta la agregará manualmente al progreso. ¡Cada aporte cuenta!</p>
-            <button class="cancel-modal-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-8 rounded-lg">Entendido</button>
-        </div>
-    </div>
-
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        let goalAmount = 200000; // Default goal
-        let savedAmount = 0;
-        let transactions = [];
-        let transactionIdToDelete = null;
-
-        // DOM Elements
-        const progressBar = document.getElementById('progress-bar');
-        const progressPercentage = document.getElementById('progress-percentage');
-        const savedAmountEl = document.getElementById('saved-amount');
-        const remainingAmountEl = document.getElementById('remaining-amount');
-        const goalAmountEl = document.getElementById('goal-amount');
-        const depositAmountInput = document.getElementById('deposit-amount');
-        const addButton = document.getElementById('add-button');
-        const transactionList = document.getElementById('transaction-list');
-        const resetButton = document.getElementById('reset-button');
-        const messageBox = document.getElementById('message-box');
-        const goalDisplay = document.getElementById('goal-display');
-        const editGoalIcon = document.getElementById('edit-goal-icon');
-        const helpButton = document.getElementById('help-button');
-        
-        // Modals
-        const modalBackdrop = document.getElementById('modal-backdrop');
-        const confirmationModal = document.getElementById('confirmation-modal');
-        const editGoalModal = document.getElementById('edit-goal-modal');
-        const deleteTxModal = document.getElementById('delete-tx-modal');
-        const helpModal = document.getElementById('help-modal');
-        
-        const confirmResetButton = document.getElementById('confirm-reset');
-        const newGoalAmountInput = document.getElementById('new-goal-amount');
-        const confirmEditGoalButton = document.getElementById('confirm-edit-goal');
-        const confirmDeleteTxButton = document.getElementById('confirm-delete-tx');
-        const cancelModalButtons = document.querySelectorAll('.cancel-modal-btn');
-
-
-        // Load data from localStorage
-        function loadData() {
-            const savedData = localStorage.getItem('savingsTracker');
-            if (savedData) {
-                const data = JSON.parse(savedData);
-                goalAmount = data.goalAmount || 200000;
-                savedAmount = data.savedAmount || 0;
-                transactions = data.transactions || [];
-            }
-            updateUI();
-        }
-
-        // Save data to localStorage
-        function saveData() {
-            const data = { goalAmount, savedAmount, transactions };
-            localStorage.setItem('savingsTracker', JSON.stringify(data));
-        }
-
-        // Format currency
-        const currencyFormatter = new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' });
-
-        // Update UI function
-        function updateUI() {
-            // Recalculate savedAmount from transactions to ensure consistency
-            savedAmount = transactions.reduce((acc, tx) => acc + tx.amount, 0);
-
-            const remainingAmount = goalAmount - savedAmount;
-            const progress = (savedAmount > 0 && goalAmount > 0) ? (savedAmount / goalAmount) * 100 : 0;
-            const displayProgress = Math.min(progress, 100);
-
-            savedAmountEl.textContent = currencyFormatter.format(savedAmount);
-            remainingAmountEl.textContent = currencyFormatter.format(remainingAmount > 0 ? remainingAmount : 0);
-            goalAmountEl.textContent = currencyFormatter.format(goalAmount);
-            goalDisplay.textContent = currencyFormatter.format(goalAmount);
-
-            progressBar.style.width = `${displayProgress}%`;
-            progressPercentage.textContent = `${progress.toFixed(2)}%`;
-
-            renderTransactions();
-            saveData(); // Save every time UI is updated to keep data in sync
-        }
-        
-        // Render transactions
-        function renderTransactions() {
-            transactionList.innerHTML = '';
-            if (transactions.length === 0) {
-                transactionList.innerHTML = '<p class="text-gray-500 text-center">Aún no hay depósitos.</p>';
-                return;
-            }
-            [...transactions].reverse().forEach(tx => {
-                const txElement = document.createElement('div');
-                txElement.className = 'flex justify-between items-center bg-gray-800 p-2 rounded-md text-sm transition-transform duration-200 hover:scale-[1.02] hover:bg-gray-700/80';
-                txElement.innerHTML = `
-                    <div class="flex-grow">
-                        <span class="text-gray-300">${new Date(tx.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                        <span class="font-bold text-green-400 block sm:inline sm:ml-4">+ ${currencyFormatter.format(tx.amount)}</span>
+        <!-- Pantalla del Juego -->
+        <div id="game-screen" class="screen">
+            <div class="bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/50">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="level-title" class="text-2xl font-bold text-cyan-400">Nivel 1</h2>
+                    <div id="progress-bar" class="w-1/2 bg-slate-700 rounded-full h-2.5">
+                        <div id="progress-bar-inner" class="bg-cyan-400 h-2.5 rounded-full" style="width: 0%"></div>
                     </div>
-                    <button class="delete-tx-btn p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-full transition" data-tx-id="${tx.id}" title="Eliminar depósito">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    </button>
-                `;
-                transactionList.appendChild(txElement);
-                
-                txElement.querySelector('.delete-tx-btn').addEventListener('click', (e) => {
-                    transactionIdToDelete = Number(e.currentTarget.dataset.txId);
-                    showModal(deleteTxModal);
-                });
+                    <button id="back-to-levels" class="text-slate-400 hover:text-white transition">Volver</button>
+                </div>
+                <div class="mb-6">
+                    <p id="question-text" class="text-xl sm:text-2xl font-medium leading-relaxed"></p>
+                </div>
+                <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Las opciones se generan aquí -->
+                </div>
+                <div class="mt-8 text-center">
+                    <button id="next-question-btn" class="hidden bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-8 rounded-lg w-full sm:w-auto">Siguiente Pregunta</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de Resultados -->
+        <div id="result-screen" class="screen text-center">
+             <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl shadow-slate-950/50">
+                <h2 id="result-title" class="text-3xl font-bold mb-4">¡Nivel Completado!</h2>
+                <p id="result-message" class="text-slate-300 text-lg mb-6"></p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="next-level-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg">Siguiente Nivel</button>
+                    <button id="retry-level-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg">Intentar de Nuevo</button>
+                    <button id="main-menu-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-6 rounded-lg">Volver al Menú</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const triviaData = [
+            // Nivel 1: Conocimiento General Básico
+            {
+                level: 1,
+                questions: [
+                    { question: "¿Cuál es la capital de Francia?", options: ["Londres", "Berlín", "París", "Madrid"], answer: "París" },
+                    { question: "¿Cuántos días tiene una semana?", options: ["5", "6", "7", "8"], answer: "7" },
+                    { question: "¿Qué planeta es conocido como el 'Planeta Rojo'?", options: ["Júpiter", "Marte", "Venus", "Saturno"], answer: "Marte" },
+                    { question: "¿Cuál es el océano más grande del mundo?", options: ["Atlántico", "Índico", "Ártico", "Pacífico"], answer: "Pacífico" },
+                    { question: "¿Qué animal maúlla?", options: ["Perro", "Gato", "Pájaro", "Vaca"], answer: "Gato" }
+                ]
+            },
+            // Nivel 2: Geografía Fácil
+            {
+                level: 2,
+                questions: [
+                    { question: "¿En qué continente se encuentra Egipto?", options: ["Asia", "Europa", "África", "América"], answer: "África" },
+                    { question: "¿Cuál es el río más largo del mundo?", options: ["Nilo", "Amazonas", "Misisipi", "Yangtsé"], answer: "Amazonas" },
+                    { question: "¿Cuál es la capital de Japón?", options: ["Pekín", "Seúl", "Tokio", "Bangkok"], answer: "Tokio" },
+                    { question: "El Coliseo es un famoso monumento en...", options: ["Atenas", "Estambul", "París", "Roma"], answer: "Roma" },
+                    { question: "¿Cuál es el país más grande del mundo por área?", options: ["Canadá", "China", "Estados Unidos", "Rusia"], answer: "Rusia" }
+                ]
+            },
+            // Nivel 3: Ciencia Básica
+            {
+                level: 3,
+                questions: [
+                    { question: "¿Cuál es el símbolo químico del agua?", options: ["H2O", "CO2", "O2", "NaCl"], answer: "H2O" },
+                    { question: "¿Qué gas necesitan las plantas para la fotosíntesis?", options: ["Oxígeno", "Nitrógeno", "Dióxido de Carbono", "Hidrógeno"], answer: "Dióxido de Carbono" },
+                    { question: "¿Cuántos planetas hay en nuestro sistema solar?", options: ["7", "8", "9", "10"], answer: "8" },
+                    { question: "La fuerza que nos mantiene en la Tierra se llama...", options: ["Fricción", "Magnetismo", "Gravedad", "Inercia"], answer: "Gravedad" },
+                    { question: "¿Cuál es el centro de nuestro sistema solar?", options: ["La Luna", "Marte", "La Tierra", "El Sol"], answer: "El Sol" }
+                ]
+            },
+            // Nivel 4: Historia Fácil
+            {
+                level: 4,
+                questions: [
+                    { question: "¿Quién pintó la Mona Lisa?", options: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Miguel Ángel"], answer: "Leonardo da Vinci" },
+                    { question: "¿En qué año llegó Cristóbal Colón a América?", options: ["1492", "1520", "1607", "1776"], answer: "1492" },
+                    { question: "Las pirámides de Giza fueron construidas por los antiguos...", options: ["Romanos", "Griegos", "Egipcios", "Mayas"], answer: "Egipcios" },
+                    { question: "¿Quién fue el primer hombre en pisar la luna?", options: ["Buzz Aldrin", "Yuri Gagarin", "Neil Armstrong", "Michael Collins"], answer: "Neil Armstrong" },
+                    { question: "¿Qué invento se atribuye a Thomas Edison?", options: ["El teléfono", "La bombilla eléctrica", "El automóvil", "El avión"], answer: "La bombilla eléctrica" }
+                ]
+            },
+            // Nivel 5: Cultura Pop
+            {
+                level: 5,
+                questions: [
+                    { question: "¿Quién es el autor de la saga 'Harry Potter'?", options: ["J.R.R. Tolkien", "George R.R. Martin", "J.K. Rowling", "Stephen King"], answer: "J.K. Rowling" },
+                    { question: "¿En qué película aparece el personaje 'Darth Vader'?", options: ["Star Trek", "El Señor de los Anillos", "Star Wars", "Blade Runner"], answer: "Star Wars" },
+                    { question: "¿Cuál de estos no es un Vengador (Avenger) original del cine?", options: ["Iron Man", "Capitán América", "Spider-Man", "Thor"], answer: "Spider-Man" },
+                    { question: "El protagonista del videojuego 'The Legend of Zelda' se llama...", options: ["Zelda", "Ganon", "Link", "Mario"], answer: "Link" },
+                    { question: "¿Qué banda de rock interpretaba la canción 'Bohemian Rhapsody'?", options: ["The Beatles", "Led Zeppelin", "Queen", "The Rolling Stones"], answer: "Queen" }
+                ]
+            },
+            // Nivel 6: Geografía Media
+            {
+                level: 6,
+                questions: [
+                    { question: "¿Cuál es la montaña más alta del mundo?", options: ["K2", "Kangchenjunga", "Lhotse", "Everest"], answer: "Everest" },
+                    { question: "El desierto más grande del mundo es...", options: ["Sahara", "Gobi", "Kalahari", "Antártico"], answer: "Antártico" },
+                    { question: "¿Qué país es conocido como la 'Tierra del Sol Naciente'?", options: ["China", "Japón", "Corea del Sur", "Tailandia"], answer: "Japón" },
+                    { question: "¿En qué país se encuentra el Machu Picchu?", options: ["Colombia", "Bolivia", "Perú", "Ecuador"], answer: "Perú" },
+                    { question: "¿Cuál es el único país que es también un continente?", options: ["Groenlandia", "Islandia", "Australia", "Madagascar"], answer: "Australia" }
+                ]
+            },
+            // Nivel 7: Ciencia Media
+            {
+                level: 7,
+                questions: [
+                    { question: "¿Cuál es el elemento más abundante en la corteza terrestre?", options: ["Hierro", "Silicio", "Oxígeno", "Aluminio"], answer: "Oxígeno" },
+                    { question: "¿Qué parte de la célula contiene el material genético (ADN)?", options: ["Mitocondria", "Citoplasma", "Membrana", "Núcleo"], answer: "Núcleo" },
+                    { question: "La velocidad de la luz es aproximadamente...", options: ["300,000 km/s", "150,000 km/s", "500,000 km/s", "1,000,000 km/s"], answer: "300,000 km/s" },
+                    { question: "¿Quién desarrolló la teoría de la relatividad?", options: ["Isaac Newton", "Galileo Galilei", "Albert Einstein", "Nikola Tesla"], answer: "Albert Einstein" },
+                    { question: "La tabla periódica organiza los...", options: ["Compuestos", "Minerales", "Elementos químicos", "Isótopos"], answer: "Elementos químicos" }
+                ]
+            },
+            // Nivel 8: Historia Media
+            {
+                level: 8,
+                questions: [
+                    { question: "¿Qué evento desencadenó la Primera Guerra Mundial?", options: ["La invasión de Polonia", "El asesinato del Archiduque Francisco Fernando", "El hundimiento del Lusitania", "La Revolución Rusa"], answer: "El asesinato del Archiduque Francisco Fernando" },
+                    { question: "La 'Guerra Fría' fue un enfrentamiento entre Estados Unidos y...", options: ["China", "Alemania", "Japón", "La Unión Soviética"], answer: "La Unión Soviética" },
+                    { question: "¿Quién fue el líder del movimiento por los derechos civiles en Estados Unidos en los años 60?", options: ["Malcolm X", "Martin Luther King Jr.", "Rosa Parks", "Nelson Mandela"], answer: "Martin Luther King Jr." },
+                    { question: "El Renacimiento fue un movimiento cultural que comenzó en...", options: ["Francia", "España", "Inglaterra", "Italia"], answer: "Italia" },
+                    { question: "¿En qué siglo cayó el Imperio Romano de Occidente?", options: ["Siglo III", "Siglo V", "Siglo VII", "Siglo X"], answer: "Siglo V" }
+                ]
+            },
+            // Nivel 9: Conocimiento General Difícil
+            {
+                level: 9,
+                questions: [
+                    { question: "¿Cuál es el hueso más pequeño del cuerpo humano?", options: ["Falange", "Yunque", "Martillo", "Estribo"], answer: "Estribo" },
+                    { question: "La 'Filosofía' es un término griego que significa...", options: ["Amor por el conocimiento", "Búsqueda de la verdad", "Estudio del ser", "Amor por la sabiduría"], answer: "Amor por la sabiduría" },
+                    { question: "¿Cuántos corazones tiene un pulpo?", options: ["1", "2", "3", "4"], answer: "3" },
+                    { question: "¿Cuál es la moneda oficial de Suiza?", options: ["Euro", "Libra", "Franco Suizo", "Dólar"], answer: "Franco Suizo" },
+                    { question: "¿Qué escritor es conocido por crear el personaje de Sherlock Holmes?", options: ["Agatha Christie", "Edgar Allan Poe", "Arthur Conan Doyle", "Jules Verne"], answer: "Arthur Conan Doyle" }
+                ]
+            },
+            // Nivel 10: Ciencia y Tecnología Difícil
+            {
+                level: 10,
+                questions: [
+                    { question: "¿Qué significa el acrónimo 'LASER'?", options: ["Light Amplification by Stimulated Emission of Radiation", "Light Absorption by Spontaneous Emitting Rádar", "Luminous Activity Simulated by Energy Reflection", "Ninguna de las anteriores"], answer: "Light Amplification by Stimulated Emission of Radiation" },
+                    { question: "En computación, ¿qué significa 'CPU'?", options: ["Unidad Central de Procesamiento", "Unidad de Control de Potencia", "Tarjeta de Procesamiento Común", "Centro de Poder Universal"], answer: "Unidad Central de Procesamiento" },
+                    { question: "¿Cuál de estos no es un lenguaje de programación?", options: ["Python", "Java", "HTML", "C++"], answer: "HTML" },
+                    { question: "El bosón de Higgs es también conocido como...", options: ["La partícula Omega", "La partícula de Dios", "El quark encantado", "El neutrino tau"], answer: "La partícula de Dios" },
+                    { question: "¿Quién es considerado el 'padre de la computadora'?", options: ["Alan Turing", "John von Neumann", "Charles Babbage", "Bill Gates"], answer: "Charles Babbage" }
+                ]
+            }
+        ];
+
+        // --- Variables de Estado del Juego ---
+        let currentLevel = 0;
+        let unlockedLevels = 1;
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        // --- Selectores del DOM ---
+        const screens = {
+            levelSelection: document.getElementById('level-selection-screen'),
+            game: document.getElementById('game-screen'),
+            result: document.getElementById('result-screen'),
+        };
+        const levelButtonsContainer = document.getElementById('level-buttons');
+        const levelTitle = document.getElementById('level-title');
+        const progressBarInner = document.getElementById('progress-bar-inner');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+        const backToLevelsBtn = document.getElementById('back-to-levels');
+        
+        // --- Selectores de la Pantalla de Resultados ---
+        const resultTitle = document.getElementById('result-title');
+        const resultMessage = document.getElementById('result-message');
+        const nextLevelBtn = document.getElementById('next-level-btn');
+        const retryLevelBtn = document.getElementById('retry-level-btn');
+        const mainMenuBtn = document.getElementById('main-menu-btn');
+
+        // --- Funciones del Juego ---
+
+        function switchScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.remove('active'));
+            screens[screenName].classList.add('active');
+        }
+
+        function createLevelButtons() {
+            levelButtonsContainer.innerHTML = '';
+            triviaData.forEach(levelData => {
+                const isLocked = levelData.level > unlockedLevels;
+                const button = document.createElement('button');
+                button.className = `level-btn p-6 rounded-lg font-bold text-2xl focus:outline-none focus:ring-4 focus:ring-cyan-500/50 ${isLocked ? 'bg-slate-700 text-slate-500 locked' : 'bg-slate-800 hover:bg-slate-700'}`;
+                button.innerHTML = isLocked ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>` : `${levelData.level}`;
+                button.disabled = isLocked;
+                button.onclick = () => {
+                    startLevel(levelData.level);
+                };
+                levelButtonsContainer.appendChild(button);
             });
         }
-        
-        function showMessage(message, type = 'success') {
-            messageBox.textContent = message;
-            messageBox.className = `p-3 mb-6 rounded-lg text-center ${type === 'success' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`;
-            messageBox.classList.remove('hidden');
-            setTimeout(() => { messageBox.classList.add('hidden'); }, 3000);
+
+        function startLevel(level) {
+            currentLevel = level;
+            currentQuestionIndex = 0;
+            score = 0;
+            switchScreen('game');
+            displayQuestion();
         }
 
-        function addDeposit() {
-            const amount = parseFloat(depositAmountInput.value);
-            if (isNaN(amount) || amount <= 0) {
-                showMessage('Por favor, ingresa un monto válido.', 'error');
-                return;
+        function displayQuestion() {
+            // Reiniciar estado
+            optionsContainer.innerHTML = '';
+            nextQuestionBtn.classList.add('hidden');
+            
+            const levelData = triviaData.find(l => l.level === currentLevel);
+            const questionData = levelData.questions[currentQuestionIndex];
+
+            levelTitle.textContent = `Nivel ${currentLevel}`;
+            questionText.textContent = questionData.question;
+            
+            // Actualizar barra de progreso
+            const progress = ((currentQuestionIndex) / levelData.questions.length) * 100;
+            progressBarInner.style.width = `${progress}%`;
+
+            questionData.options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = "option-btn bg-slate-700 hover:bg-cyan-500 text-left p-4 rounded-lg text-lg";
+                button.textContent = option;
+                button.onclick = () => checkAnswer(option, button);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedOption, button) {
+            const levelData = triviaData.find(l => l.level === currentLevel);
+            const correctAnswer = levelData.questions[currentQuestionIndex].answer;
+
+            // Deshabilitar todos los botones de opción
+            const optionButtons = optionsContainer.querySelectorAll('.option-btn');
+            optionButtons.forEach(btn => {
+                btn.disabled = true;
+                // Marcar la respuesta correcta
+                if (btn.textContent === correctAnswer) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            if (selectedOption === correctAnswer) {
+                score++;
+            } else {
+                button.classList.add('incorrect');
             }
-            const wasGoalReached = savedAmount >= goalAmount;
-            transactions.push({ id: Date.now(), amount, date: new Date().toISOString() });
-            depositAmountInput.value = '';
-            showMessage(`¡${currencyFormatter.format(amount)} agregados con éxito!`, 'success');
-            updateUI();
-            if (savedAmount + amount >= goalAmount && !wasGoalReached) { celebrate(); }
-        }
-        
-        function celebrate() {
-            showMessage('¡Felicidades! ¡Has alcanzado tu meta!', 'success');
-            confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
-        }
 
-        function resetProgress() {
-            transactions = [];
-            showMessage('Tu progreso ha sido restablecido.', 'success');
-            updateUI();
-            hideModal();
+            nextQuestionBtn.classList.remove('hidden');
         }
         
-        function updateGoal() {
-            const newGoal = parseFloat(newGoalAmountInput.value);
-            if (isNaN(newGoal) || newGoal <= 0) {
-                showMessage('Por favor, ingresa una meta válida y positiva.', 'error');
-                return;
+        function handleNextQuestion() {
+            currentQuestionIndex++;
+            const levelData = triviaData.find(l => l.level === currentLevel);
+            if (currentQuestionIndex < levelData.questions.length) {
+                displayQuestion();
+            } else {
+                showResults();
             }
-            goalAmount = newGoal;
-            showMessage(`¡Tu nueva meta es ${currencyFormatter.format(goalAmount)}!`, 'success');
-            hideModal();
-            updateUI();
         }
+        
+        function showResults() {
+            switchScreen('result');
+            const levelData = triviaData.find(l => l.level === currentLevel);
+            const totalQuestions = levelData.questions.length;
+            const passingScore = 3;
 
-        function deleteTransaction() {
-            if (transactionIdToDelete === null) return;
-            const txIndex = transactions.findIndex(tx => tx.id === transactionIdToDelete);
-            if (txIndex > -1) {
-                const txAmount = transactions[txIndex].amount;
-                transactions.splice(txIndex, 1);
-                showMessage(`Depósito de ${currencyFormatter.format(txAmount)} eliminado.`, 'success');
-                updateUI();
+            resultMessage.textContent = `Tu puntuación fue ${score} de ${totalQuestions}.`;
+
+            if (score >= passingScore) {
+                resultTitle.textContent = '¡Nivel Superado!';
+                resultTitle.classList.remove('text-red-400');
+                resultTitle.classList.add('text-green-400');
+                retryLevelBtn.classList.add('hidden');
+
+                if (currentLevel === unlockedLevels && currentLevel < triviaData.length) {
+                    unlockedLevels++;
+                }
+
+                if (currentLevel < triviaData.length) {
+                    nextLevelBtn.classList.remove('hidden');
+                } else {
+                    nextLevelBtn.classList.add('hidden');
+                    resultMessage.textContent += " ¡Has completado todos los niveles! ¡Felicidades!";
+                }
+            } else {
+                resultTitle.textContent = '¡Inténtalo de Nuevo!';
+                resultTitle.classList.remove('text-green-400');
+                resultTitle.classList.add('text-red-400');
+
+                nextLevelBtn.classList.add('hidden');
+                retryLevelBtn.classList.remove('hidden');
             }
-            hideModal();
-            transactionIdToDelete = null;
         }
 
-        // Modal functions
-        function showModal(modalElement) {
-            modalBackdrop.classList.remove('hidden');
-            // Hide all modals first
-            [confirmationModal, editGoalModal, deleteTxModal, helpModal].forEach(m => m.classList.add('hidden'));
-            // Then show the requested one
-            modalElement.classList.remove('hidden');
+        function goBackToLevels() {
+            createLevelButtons();
+            switchScreen('levelSelection');
         }
 
-        function hideModal() {
-            modalBackdrop.classList.add('hidden');
+        // --- Event Listeners ---
+        nextQuestionBtn.addEventListener('click', handleNextQuestion);
+        backToLevelsBtn.addEventListener('click', goBackToLevels);
+        
+        // Listeners de la pantalla de resultados
+        mainMenuBtn.addEventListener('click', goBackToLevels);
+        retryLevelBtn.addEventListener('click', () => startLevel(currentLevel));
+        nextLevelBtn.addEventListener('click', () => {
+             if (currentLevel < triviaData.length) {
+                startLevel(currentLevel + 1);
+            }
+        });
+
+        // --- Inicialización ---
+        function init() {
+            createLevelButtons();
+            switchScreen('levelSelection');
         }
 
-        // Event Listeners
-        addButton.addEventListener('click', addDeposit);
-        depositAmountInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addDeposit(); });
-        
-        resetButton.addEventListener('click', () => showModal(confirmationModal));
-        confirmResetButton.addEventListener('click', resetProgress);
-        
-        goalDisplay.addEventListener('click', () => showModal(editGoalModal));
-        editGoalIcon.addEventListener('click', () => showModal(editGoalModal));
-        confirmEditGoalButton.addEventListener('click', updateGoal);
-        newGoalAmountInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') updateGoal(); });
-
-        confirmDeleteTxButton.addEventListener('click', deleteTransaction);
-        
-        helpButton.addEventListener('click', () => showModal(helpModal));
-
-        cancelModalButtons.forEach(btn => btn.addEventListener('click', hideModal));
-
-        // Initial load
-        loadData();
-    });
-</script>
-
+        init();
+    </script>
 </body>
 </html>
-
