@@ -3,376 +3,305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Trivia por Niveles</title>
+    <title>Plan de Ahorro: $100,000</title>
+    <!-- Incluyendo Tailwind CSS para un diseño moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Usando la fuente Inter para una mejor apariencia -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        .screen {
-            display: none;
+        /* Animación para el gradiente de la barra de progreso */
+        @keyframes animated-gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
-        .screen.active {
-            display: block;
+        .progress-bar-fill {
+            transition: width 0.5s ease-in-out;
+            background-size: 200% 200%;
+            background-image: linear-gradient(to right, #4ade80, #3b82f6, #8b5cf6);
+            animation: animated-gradient 3s ease infinite;
         }
-        .level-btn {
-            transition: all 0.3s ease;
-        }
-        .level-btn.locked {
-            cursor: not-allowed;
-        }
-        .option-btn {
-            transition: all 0.2s ease;
-        }
-        .correct {
-            background-color: #22c55e !important; /* green-500 */
-            color: white !important;
-            border-color: #16a34a !important; /* green-600 */
-        }
-        .incorrect {
-            background-color: #ef4444 !important; /* red-500 */
-            color: white !important;
-            border-color: #dc2626 !important; /* red-600 */
+        /* Estilos para el canvas del confeti */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
         }
     </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-gray-50 to-indigo-100 flex items-center justify-center min-h-screen py-10">
 
-    <div id="app" class="w-full max-w-2xl mx-auto">
+    <!-- Canvas para el efecto de confeti -->
+    <canvas id="confetti-canvas"></canvas>
 
-        <!-- Pantalla de Selección de Nivel -->
-        <div id="level-selection-screen" class="screen active text-center">
-            <h1 class="text-4xl font-bold mb-2 text-cyan-400">Trivia de Conocimiento</h1>
-            <p class="text-slate-400 mb-8">Selecciona un nivel para comenzar</p>
-            <div id="level-buttons" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                <!-- Los botones de nivel se generan aquí con JS -->
-            </div>
+    <div class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl border border-gray-200 p-8 md:p-12 text-center transform hover:scale-[1.01] transition-transform duration-500">
+        
+        <!-- Título principal y meta -->
+        <div class="flex items-center justify-center gap-3">
+            <!-- Icono de Alcancía -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 001.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+            </svg>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800">Mi Plan de Ahorro</h1>
         </div>
+        <p class="text-xl md:text-2xl text-indigo-600 font-semibold mt-2 mb-8">Meta: $100,000</p>
 
-        <!-- Pantalla del Juego -->
-        <div id="game-screen" class="screen">
-            <div class="bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/50">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 id="level-title" class="text-2xl font-bold text-cyan-400">Nivel 1</h2>
-                    <div id="progress-bar" class="w-1/2 bg-slate-700 rounded-full h-2.5">
-                        <div id="progress-bar-inner" class="bg-cyan-400 h-2.5 rounded-full" style="width: 0%"></div>
-                    </div>
-                    <button id="back-to-levels" class="text-slate-400 hover:text-white transition">Volver</button>
-                </div>
-                <div class="mb-6">
-                    <p id="question-text" class="text-xl sm:text-2xl font-medium leading-relaxed"></p>
-                </div>
-                <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- Las opciones se generan aquí -->
-                </div>
-                <div class="mt-8 text-center">
-                    <button id="next-question-btn" class="hidden bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-8 rounded-lg w-full sm:w-auto">Siguiente Pregunta</button>
+        <!-- Contenedor de la barra de progreso -->
+        <div class="mb-6">
+            <div class="w-full bg-gray-200 rounded-full h-8 overflow-hidden shadow-inner">
+                <div id="progressBar" class="progress-bar-fill h-8 rounded-full flex items-center justify-center text-white font-bold text-sm" style="width: 0%;">
+                    <span id="progressText">0%</span>
                 </div>
             </div>
         </div>
 
-        <!-- Pantalla de Resultados -->
-        <div id="result-screen" class="screen text-center">
-             <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl shadow-slate-950/50">
-                <h2 id="result-title" class="text-3xl font-bold mb-4">¡Nivel Completado!</h2>
-                <p id="result-message" class="text-slate-300 text-lg mb-6"></p>
-                <div class="flex flex-col sm:flex-row justify-center gap-4">
-                    <button id="next-level-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg">Siguiente Nivel</button>
-                    <button id="retry-level-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg">Intentar de Nuevo</button>
-                    <button id="main-menu-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-6 rounded-lg">Volver al Menú</button>
-                </div>
-            </div>
+        <!-- Información del ahorro actual -->
+        <div class="mb-8">
+            <p class="text-lg text-gray-600">
+                Has ahorrado: <span id="currentAmount" class="font-bold text-gray-900 text-2xl">$0</span> de <span class="font-bold text-gray-800">$100,000</span>
+            </p>
         </div>
+
+        <!-- Sección para agregar ahorros -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+            <div class="relative">
+                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                 <input type="number" id="amountInput" placeholder="Ingresa un monto" class="pl-7 w-full sm:w-64 p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition">
+            </div>
+            <button id="updateButton" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-1 flex items-center gap-2">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                <span>Agregar Ahorro</span>
+            </button>
+        </div>
+        
+        <!-- Mensaje de felicitaciones (oculto por defecto) -->
+        <div id="congratsMessage" class="hidden mt-8 p-4 bg-green-100 text-green-800 rounded-lg">
+            <p class="font-bold text-xl">¡Felicidades! ¡Has alcanzado tu meta!</p>
+        </div>
+
+        <!-- Historial de Transacciones -->
+        <div class="mt-10 border-t-2 border-gray-100 pt-6 text-left">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Historial de Ahorros</h2>
+            <div id="historyContainer" class="max-h-60 overflow-y-auto bg-gray-50 p-4 rounded-lg">
+                <ul id="historyList" class="space-y-2">
+                    <!-- Las transacciones se agregarán aquí -->
+                </ul>
+            </div>
+            <button id="clearHistoryButton" class="mt-4 w-full bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center gap-2">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                </svg>
+                <span>Borrar Historial</span>
+            </button>
+        </div>
+
     </div>
 
     <script>
-        const triviaData = [
-            // Nivel 1: Conocimiento General Básico
-            {
-                level: 1,
-                questions: [
-                    { question: "¿Cuál es la capital de Francia?", options: ["Londres", "Berlín", "París", "Madrid"], answer: "París" },
-                    { question: "¿Cuántos días tiene una semana?", options: ["5", "6", "7", "8"], answer: "7" },
-                    { question: "¿Qué planeta es conocido como el 'Planeta Rojo'?", options: ["Júpiter", "Marte", "Venus", "Saturno"], answer: "Marte" },
-                    { question: "¿Cuál es el océano más grande del mundo?", options: ["Atlántico", "Índico", "Ártico", "Pacífico"], answer: "Pacífico" },
-                    { question: "¿Qué animal maúlla?", options: ["Perro", "Gato", "Pájaro", "Vaca"], answer: "Gato" }
-                ]
-            },
-            // Nivel 2: Geografía Fácil
-            {
-                level: 2,
-                questions: [
-                    { question: "¿En qué continente se encuentra Egipto?", options: ["Asia", "Europa", "África", "América"], answer: "África" },
-                    { question: "¿Cuál es el río más largo del mundo?", options: ["Nilo", "Amazonas", "Misisipi", "Yangtsé"], answer: "Amazonas" },
-                    { question: "¿Cuál es la capital de Japón?", options: ["Pekín", "Seúl", "Tokio", "Bangkok"], answer: "Tokio" },
-                    { question: "El Coliseo es un famoso monumento en...", options: ["Atenas", "Estambul", "París", "Roma"], answer: "Roma" },
-                    { question: "¿Cuál es el país más grande del mundo por área?", options: ["Canadá", "China", "Estados Unidos", "Rusia"], answer: "Rusia" }
-                ]
-            },
-            // Nivel 3: Ciencia Básica
-            {
-                level: 3,
-                questions: [
-                    { question: "¿Cuál es el símbolo químico del agua?", options: ["H2O", "CO2", "O2", "NaCl"], answer: "H2O" },
-                    { question: "¿Qué gas necesitan las plantas para la fotosíntesis?", options: ["Oxígeno", "Nitrógeno", "Dióxido de Carbono", "Hidrógeno"], answer: "Dióxido de Carbono" },
-                    { question: "¿Cuántos planetas hay en nuestro sistema solar?", options: ["7", "8", "9", "10"], answer: "8" },
-                    { question: "La fuerza que nos mantiene en la Tierra se llama...", options: ["Fricción", "Magnetismo", "Gravedad", "Inercia"], answer: "Gravedad" },
-                    { question: "¿Cuál es el centro de nuestro sistema solar?", options: ["La Luna", "Marte", "La Tierra", "El Sol"], answer: "El Sol" }
-                ]
-            },
-            // Nivel 4: Historia Fácil
-            {
-                level: 4,
-                questions: [
-                    { question: "¿Quién pintó la Mona Lisa?", options: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Miguel Ángel"], answer: "Leonardo da Vinci" },
-                    { question: "¿En qué año llegó Cristóbal Colón a América?", options: ["1492", "1520", "1607", "1776"], answer: "1492" },
-                    { question: "Las pirámides de Giza fueron construidas por los antiguos...", options: ["Romanos", "Griegos", "Egipcios", "Mayas"], answer: "Egipcios" },
-                    { question: "¿Quién fue el primer hombre en pisar la luna?", options: ["Buzz Aldrin", "Yuri Gagarin", "Neil Armstrong", "Michael Collins"], answer: "Neil Armstrong" },
-                    { question: "¿Qué invento se atribuye a Thomas Edison?", options: ["El teléfono", "La bombilla eléctrica", "El automóvil", "El avión"], answer: "La bombilla eléctrica" }
-                ]
-            },
-            // Nivel 5: Cultura Pop
-            {
-                level: 5,
-                questions: [
-                    { question: "¿Quién es el autor de la saga 'Harry Potter'?", options: ["J.R.R. Tolkien", "George R.R. Martin", "J.K. Rowling", "Stephen King"], answer: "J.K. Rowling" },
-                    { question: "¿En qué película aparece el personaje 'Darth Vader'?", options: ["Star Trek", "El Señor de los Anillos", "Star Wars", "Blade Runner"], answer: "Star Wars" },
-                    { question: "¿Cuál de estos no es un Vengador (Avenger) original del cine?", options: ["Iron Man", "Capitán América", "Spider-Man", "Thor"], answer: "Spider-Man" },
-                    { question: "El protagonista del videojuego 'The Legend of Zelda' se llama...", options: ["Zelda", "Ganon", "Link", "Mario"], answer: "Link" },
-                    { question: "¿Qué banda de rock interpretaba la canción 'Bohemian Rhapsody'?", options: ["The Beatles", "Led Zeppelin", "Queen", "The Rolling Stones"], answer: "Queen" }
-                ]
-            },
-            // Nivel 6: Geografía Media
-            {
-                level: 6,
-                questions: [
-                    { question: "¿Cuál es la montaña más alta del mundo?", options: ["K2", "Kangchenjunga", "Lhotse", "Everest"], answer: "Everest" },
-                    { question: "El desierto más grande del mundo es...", options: ["Sahara", "Gobi", "Kalahari", "Antártico"], answer: "Antártico" },
-                    { question: "¿Qué país es conocido como la 'Tierra del Sol Naciente'?", options: ["China", "Japón", "Corea del Sur", "Tailandia"], answer: "Japón" },
-                    { question: "¿En qué país se encuentra el Machu Picchu?", options: ["Colombia", "Bolivia", "Perú", "Ecuador"], answer: "Perú" },
-                    { question: "¿Cuál es el único país que es también un continente?", options: ["Groenlandia", "Islandia", "Australia", "Madagascar"], answer: "Australia" }
-                ]
-            },
-            // Nivel 7: Ciencia Media
-            {
-                level: 7,
-                questions: [
-                    { question: "¿Cuál es el elemento más abundante en la corteza terrestre?", options: ["Hierro", "Silicio", "Oxígeno", "Aluminio"], answer: "Oxígeno" },
-                    { question: "¿Qué parte de la célula contiene el material genético (ADN)?", options: ["Mitocondria", "Citoplasma", "Membrana", "Núcleo"], answer: "Núcleo" },
-                    { question: "La velocidad de la luz es aproximadamente...", options: ["300,000 km/s", "150,000 km/s", "500,000 km/s", "1,000,000 km/s"], answer: "300,000 km/s" },
-                    { question: "¿Quién desarrolló la teoría de la relatividad?", options: ["Isaac Newton", "Galileo Galilei", "Albert Einstein", "Nikola Tesla"], answer: "Albert Einstein" },
-                    { question: "La tabla periódica organiza los...", options: ["Compuestos", "Minerales", "Elementos químicos", "Isótopos"], answer: "Elementos químicos" }
-                ]
-            },
-            // Nivel 8: Historia Media
-            {
-                level: 8,
-                questions: [
-                    { question: "¿Qué evento desencadenó la Primera Guerra Mundial?", options: ["La invasión de Polonia", "El asesinato del Archiduque Francisco Fernando", "El hundimiento del Lusitania", "La Revolución Rusa"], answer: "El asesinato del Archiduque Francisco Fernando" },
-                    { question: "La 'Guerra Fría' fue un enfrentamiento entre Estados Unidos y...", options: ["China", "Alemania", "Japón", "La Unión Soviética"], answer: "La Unión Soviética" },
-                    { question: "¿Quién fue el líder del movimiento por los derechos civiles en Estados Unidos en los años 60?", options: ["Malcolm X", "Martin Luther King Jr.", "Rosa Parks", "Nelson Mandela"], answer: "Martin Luther King Jr." },
-                    { question: "El Renacimiento fue un movimiento cultural que comenzó en...", options: ["Francia", "España", "Inglaterra", "Italia"], answer: "Italia" },
-                    { question: "¿En qué siglo cayó el Imperio Romano de Occidente?", options: ["Siglo III", "Siglo V", "Siglo VII", "Siglo X"], answer: "Siglo V" }
-                ]
-            },
-            // Nivel 9: Conocimiento General Difícil
-            {
-                level: 9,
-                questions: [
-                    { question: "¿Cuál es el hueso más pequeño del cuerpo humano?", options: ["Falange", "Yunque", "Martillo", "Estribo"], answer: "Estribo" },
-                    { question: "La 'Filosofía' es un término griego que significa...", options: ["Amor por el conocimiento", "Búsqueda de la verdad", "Estudio del ser", "Amor por la sabiduría"], answer: "Amor por la sabiduría" },
-                    { question: "¿Cuántos corazones tiene un pulpo?", options: ["1", "2", "3", "4"], answer: "3" },
-                    { question: "¿Cuál es la moneda oficial de Suiza?", options: ["Euro", "Libra", "Franco Suizo", "Dólar"], answer: "Franco Suizo" },
-                    { question: "¿Qué escritor es conocido por crear el personaje de Sherlock Holmes?", options: ["Agatha Christie", "Edgar Allan Poe", "Arthur Conan Doyle", "Jules Verne"], answer: "Arthur Conan Doyle" }
-                ]
-            },
-            // Nivel 10: Ciencia y Tecnología Difícil
-            {
-                level: 10,
-                questions: [
-                    { question: "¿Qué significa el acrónimo 'LASER'?", options: ["Light Amplification by Stimulated Emission of Radiation", "Light Absorption by Spontaneous Emitting Rádar", "Luminous Activity Simulated by Energy Reflection", "Ninguna de las anteriores"], answer: "Light Amplification by Stimulated Emission of Radiation" },
-                    { question: "En computación, ¿qué significa 'CPU'?", options: ["Unidad Central de Procesamiento", "Unidad de Control de Potencia", "Tarjeta de Procesamiento Común", "Centro de Poder Universal"], answer: "Unidad Central de Procesamiento" },
-                    { question: "¿Cuál de estos no es un lenguaje de programación?", options: ["Python", "Java", "HTML", "C++"], answer: "HTML" },
-                    { question: "El bosón de Higgs es también conocido como...", options: ["La partícula Omega", "La partícula de Dios", "El quark encantado", "El neutrino tau"], answer: "La partícula de Dios" },
-                    { question: "¿Quién es considerado el 'padre de la computadora'?", options: ["Alan Turing", "John von Neumann", "Charles Babbage", "Bill Gates"], answer: "Charles Babbage" }
-                ]
-            }
-        ];
+        const goal = 100000;
+        let transactions = [];
 
-        // --- Variables de Estado del Juego ---
-        let currentLevel = 0;
-        let unlockedLevels = 1;
-        let currentQuestionIndex = 0;
-        let score = 0;
-
-        // --- Selectores del DOM ---
-        const screens = {
-            levelSelection: document.getElementById('level-selection-screen'),
-            game: document.getElementById('game-screen'),
-            result: document.getElementById('result-screen'),
-        };
-        const levelButtonsContainer = document.getElementById('level-buttons');
-        const levelTitle = document.getElementById('level-title');
-        const progressBarInner = document.getElementById('progress-bar-inner');
-        const questionText = document.getElementById('question-text');
-        const optionsContainer = document.getElementById('options-container');
-        const nextQuestionBtn = document.getElementById('next-question-btn');
-        const backToLevelsBtn = document.getElementById('back-to-levels');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const currentAmountText = document.getElementById('currentAmount');
+        const amountInput = document.getElementById('amountInput');
+        const updateButton = document.getElementById('updateButton');
+        const congratsMessage = document.getElementById('congratsMessage');
+        const historyList = document.getElementById('historyList');
+        const clearHistoryButton = document.getElementById('clearHistoryButton');
         
-        // --- Selectores de la Pantalla de Resultados ---
-        const resultTitle = document.getElementById('result-title');
-        const resultMessage = document.getElementById('result-message');
-        const nextLevelBtn = document.getElementById('next-level-btn');
-        const retryLevelBtn = document.getElementById('retry-level-btn');
-        const mainMenuBtn = document.getElementById('main-menu-btn');
+        // --- LÓGICA DE CONFETI ---
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
+        let confettiParticles = [];
+        const colors = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
 
-        // --- Funciones del Juego ---
-
-        function switchScreen(screenName) {
-            Object.values(screens).forEach(screen => screen.classList.remove('active'));
-            screens[screenName].classList.add('active');
+        function triggerConfetti() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+            confettiParticles = [];
+            for (let i = 0; i < 150; i++) {
+                confettiParticles.push({
+                    x: Math.random() * confettiCanvas.width,
+                    y: -Math.random() * confettiCanvas.height,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speed: Math.random() * 3 + 2,
+                    angle: Math.random() * Math.PI * 2,
+                });
+            }
+            animateConfetti();
         }
 
-        function createLevelButtons() {
-            levelButtonsContainer.innerHTML = '';
-            triviaData.forEach(levelData => {
-                const isLocked = levelData.level > unlockedLevels;
-                const button = document.createElement('button');
-                button.className = `level-btn p-6 rounded-lg font-bold text-2xl focus:outline-none focus:ring-4 focus:ring-cyan-500/50 ${isLocked ? 'bg-slate-700 text-slate-500 locked' : 'bg-slate-800 hover:bg-slate-700'}`;
-                button.innerHTML = isLocked ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>` : `${levelData.level}`;
-                button.disabled = isLocked;
-                button.onclick = () => {
-                    startLevel(levelData.level);
+        let animationFrameId;
+        function animateConfetti() {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            let allParticlesOffScreen = true;
+            confettiParticles.forEach(p => {
+                p.y += p.speed;
+                p.x += Math.sin(p.angle) * 0.5;
+                p.angle += 0.01;
+
+                if (p.y < confettiCanvas.height) {
+                    allParticlesOffScreen = false;
+                }
+
+                confettiCtx.fillStyle = p.color;
+                confettiCtx.beginPath();
+                confettiCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                confettiCtx.fill();
+            });
+
+            if (allParticlesOffScreen) {
+                cancelAnimationFrame(animationFrameId);
+                 confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            } else {
+                animationFrameId = requestAnimationFrame(animateConfetti);
+            }
+        }
+        
+        function loadTransactions() {
+            const savedTransactions = localStorage.getItem('savingsHistory');
+            if (savedTransactions) {
+                transactions = JSON.parse(savedTransactions);
+            }
+            renderHistory();
+            updateUI();
+        }
+        
+        function saveTransactions() {
+            localStorage.setItem('savingsHistory', JSON.stringify(transactions));
+        }
+
+        function renderHistory() {
+            historyList.innerHTML = '';
+            if (transactions.length === 0) {
+                 historyList.innerHTML = '<li class="text-gray-500 text-center py-4">Aún no hay registros.</li>';
+                 return;
+            }
+            [...transactions].reverse().forEach(tx => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center bg-white p-3 rounded-lg shadow-sm';
+                const formattedAmount = tx.amount.toLocaleString('es-DO', { style: 'currency', currency: 'DOP' });
+                li.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="text-gray-600">${tx.date}</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="font-semibold text-green-600 text-lg">${formattedAmount}</span>
+                        <button class="delete-btn text-gray-400 hover:text-red-500 transition-colors" data-id="${tx.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                historyList.appendChild(li);
+            });
+            
+            // Adjuntar event listeners a los nuevos botones de eliminar
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const idToDelete = Number(event.currentTarget.dataset.id);
+                    handleDelete(idToDelete);
+                });
+            });
+        }
+
+        function updateUI() {
+            const currentSavings = transactions.reduce((total, tx) => total + tx.amount, 0);
+            const savingsForCalc = Math.min(currentSavings, goal);
+            const percentage = goal > 0 ? (savingsForCalc / goal) * 100 : 0;
+
+            const formattedSavings = currentSavings.toLocaleString('es-DO');
+            const formattedGoal = goal.toLocaleString('es-DO');
+
+            progressBar.style.width = percentage + '%';
+            progressText.textContent = Math.floor(percentage) + '%';
+            currentAmountText.parentElement.innerHTML = `Has ahorrado: <span id="currentAmount" class="font-bold text-gray-900 text-2xl">$${formattedSavings}</span> de <span class="font-bold text-gray-800">$${formattedGoal}</span>`;
+
+            if (currentSavings >= goal) {
+                if (!congratsMessage.classList.contains('goal-reached')) {
+                    congratsMessage.classList.remove('hidden');
+                    congratsMessage.classList.add('goal-reached');
+                    triggerConfetti();
+                }
+            } else {
+                congratsMessage.classList.add('hidden');
+                congratsMessage.classList.remove('goal-reached');
+            }
+        }
+        
+        function handleUpdate() {
+            const amountToAdd = parseFloat(amountInput.value);
+
+            if (!isNaN(amountToAdd) && amountToAdd > 0) {
+                const newTransaction = {
+                    id: Date.now(), // ID único para cada transacción
+                    amount: amountToAdd,
+                    date: new Date().toLocaleDateString('es-DO')
                 };
-                levelButtonsContainer.appendChild(button);
-            });
-        }
-
-        function startLevel(level) {
-            currentLevel = level;
-            currentQuestionIndex = 0;
-            score = 0;
-            switchScreen('game');
-            displayQuestion();
-        }
-
-        function displayQuestion() {
-            // Reiniciar estado
-            optionsContainer.innerHTML = '';
-            nextQuestionBtn.classList.add('hidden');
-            
-            const levelData = triviaData.find(l => l.level === currentLevel);
-            const questionData = levelData.questions[currentQuestionIndex];
-
-            levelTitle.textContent = `Nivel ${currentLevel}`;
-            questionText.textContent = questionData.question;
-            
-            // Actualizar barra de progreso
-            const progress = ((currentQuestionIndex) / levelData.questions.length) * 100;
-            progressBarInner.style.width = `${progress}%`;
-
-            questionData.options.forEach(option => {
-                const button = document.createElement('button');
-                button.className = "option-btn bg-slate-700 hover:bg-cyan-500 text-left p-4 rounded-lg text-lg";
-                button.textContent = option;
-                button.onclick = () => checkAnswer(option, button);
-                optionsContainer.appendChild(button);
-            });
-        }
-
-        function checkAnswer(selectedOption, button) {
-            const levelData = triviaData.find(l => l.level === currentLevel);
-            const correctAnswer = levelData.questions[currentQuestionIndex].answer;
-
-            // Deshabilitar todos los botones de opción
-            const optionButtons = optionsContainer.querySelectorAll('.option-btn');
-            optionButtons.forEach(btn => {
-                btn.disabled = true;
-                // Marcar la respuesta correcta
-                if (btn.textContent === correctAnswer) {
-                    btn.classList.add('correct');
-                }
-            });
-
-            if (selectedOption === correctAnswer) {
-                score++;
+                transactions.push(newTransaction);
+                
+                saveTransactions();
+                renderHistory();
+                updateUI();
+                
+                amountInput.value = '';
+                amountInput.blur();
             } else {
-                button.classList.add('incorrect');
-            }
-
-            nextQuestionBtn.classList.remove('hidden');
-        }
-        
-        function handleNextQuestion() {
-            currentQuestionIndex++;
-            const levelData = triviaData.find(l => l.level === currentLevel);
-            if (currentQuestionIndex < levelData.questions.length) {
-                displayQuestion();
-            } else {
-                showResults();
+                amountInput.classList.add('border-red-500', 'ring-red-500');
+                setTimeout(() => {
+                    amountInput.classList.remove('border-red-500', 'ring-red-500');
+                }, 2000);
             }
         }
         
-        function showResults() {
-            switchScreen('result');
-            const levelData = triviaData.find(l => l.level === currentLevel);
-            const totalQuestions = levelData.questions.length;
-            const passingScore = 3;
+        /**
+         * Maneja la eliminación de una transacción específica.
+         * @param {number} transactionId - El ID de la transacción a eliminar.
+         */
+        function handleDelete(transactionId) {
+            transactions = transactions.filter(tx => tx.id !== transactionId);
+            saveTransactions();
+            renderHistory();
+            updateUI();
+        }
 
-            resultMessage.textContent = `Tu puntuación fue ${score} de ${totalQuestions}.`;
-
-            if (score >= passingScore) {
-                resultTitle.textContent = '¡Nivel Superado!';
-                resultTitle.classList.remove('text-red-400');
-                resultTitle.classList.add('text-green-400');
-                retryLevelBtn.classList.add('hidden');
-
-                if (currentLevel === unlockedLevels && currentLevel < triviaData.length) {
-                    unlockedLevels++;
-                }
-
-                if (currentLevel < triviaData.length) {
-                    nextLevelBtn.classList.remove('hidden');
-                } else {
-                    nextLevelBtn.classList.add('hidden');
-                    resultMessage.textContent += " ¡Has completado todos los niveles! ¡Felicidades!";
-                }
-            } else {
-                resultTitle.textContent = '¡Inténtalo de Nuevo!';
-                resultTitle.classList.remove('text-green-400');
-                resultTitle.classList.add('text-red-400');
-
-                nextLevelBtn.classList.add('hidden');
-                retryLevelBtn.classList.remove('hidden');
+        function handleClearHistory() {
+            if(confirm('¿Estás seguro de que quieres borrar todo el historial? Esta acción no se puede deshacer.')) {
+                transactions = [];
+                saveTransactions();
+                renderHistory();
+                updateUI();
             }
         }
 
-        function goBackToLevels() {
-            createLevelButtons();
-            switchScreen('levelSelection');
-        }
-
-        // --- Event Listeners ---
-        nextQuestionBtn.addEventListener('click', handleNextQuestion);
-        backToLevelsBtn.addEventListener('click', goBackToLevels);
-        
-        // Listeners de la pantalla de resultados
-        mainMenuBtn.addEventListener('click', goBackToLevels);
-        retryLevelBtn.addEventListener('click', () => startLevel(currentLevel));
-        nextLevelBtn.addEventListener('click', () => {
-             if (currentLevel < triviaData.length) {
-                startLevel(currentLevel + 1);
+        updateButton.addEventListener('click', handleUpdate);
+        clearHistoryButton.addEventListener('click', handleClearHistory);
+        amountInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                handleUpdate();
             }
         });
 
-        // --- Inicialización ---
-        function init() {
-            createLevelButtons();
-            switchScreen('levelSelection');
-        }
-
-        init();
+        document.addEventListener('DOMContentLoaded', loadTransactions);
     </script>
 </body>
 </html>
+
