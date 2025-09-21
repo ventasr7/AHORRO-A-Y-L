@@ -3,305 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plan de Ahorro: $100,000</title>
-    <!-- Incluyendo Tailwind CSS para un diseño moderno -->
+    <title>Mi Meta de Ahorro</title>
+    <!-- Tailwind CSS para un diseño moderno y responsivo -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Usando la fuente Inter para una mejor apariencia -->
+    <!-- Google Fonts: Inter para una tipografía limpia -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        /* Usamos la fuente Inter para toda la página con un antialiasing más suave */
         body {
             font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        /* Animación para el gradiente de la barra de progreso */
-        @keyframes animated-gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .progress-bar-fill {
-            transition: width 0.5s ease-in-out;
-            background-size: 200% 200%;
-            background-image: linear-gradient(to right, #4ade80, #3b82f6, #8b5cf6);
-            animation: animated-gradient 3s ease infinite;
-        }
-        /* Estilos para el canvas del confeti */
-        #confetti-canvas {
+
+        /* Fondo animado con gradiente */
+        .background-gradient {
+            background: linear-gradient(-45deg, #0f172a, #1e3a8a, #3730a3, #1e293b);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            z-index: 9999;
+            z-index: -1;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Estilo "Glassmorphism" para la tarjeta principal */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.25);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Pequeña animación para la barra de progreso */
+        .progress-bar-fill {
+            transition: width 0.7s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        
+        /* Estilos para el modal de confirmación */
+        .modal-overlay {
+            transition: opacity 0.3s ease;
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-indigo-100 flex items-center justify-center min-h-screen py-10">
+<body class="text-white">
 
-    <!-- Canvas para el efecto de confeti -->
-    <canvas id="confetti-canvas"></canvas>
+    <div class="background-gradient"></div>
 
-    <div class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl border border-gray-200 p-8 md:p-12 text-center transform hover:scale-[1.01] transition-transform duration-500">
-        
-        <!-- Título principal y meta -->
-        <div class="flex items-center justify-center gap-3">
-            <!-- Icono de Alcancía -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 001.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-            </svg>
-            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800">Mi Plan de Ahorro</h1>
-        </div>
-        <p class="text-xl md:text-2xl text-indigo-600 font-semibold mt-2 mb-8">Meta: $100,000</p>
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl mx-auto glass-card rounded-2xl shadow-2xl p-6 md:p-10">
+            
+            <!-- Encabezado -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-black">Mi Meta de Ahorro</h1>
+                <p class="text-gray-200 mt-2">¡Cada paso cuenta hacia tu gran objetivo!</p>
+            </div>
 
-        <!-- Contenedor de la barra de progreso -->
-        <div class="mb-6">
-            <div class="w-full bg-gray-200 rounded-full h-8 overflow-hidden shadow-inner">
-                <div id="progressBar" class="progress-bar-fill h-8 rounded-full flex items-center justify-center text-white font-bold text-sm" style="width: 0%;">
-                    <span id="progressText">0%</span>
+            <!-- Visualización de la Meta -->
+            <div class="flex justify-between items-end mb-2">
+                <div class="text-left">
+                    <span class="text-sm font-medium text-gray-300">Ahorrado</span>
+                    <p id="currentAmountText" class="text-3xl font-bold">$0.00</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-sm font-medium text-gray-300">Meta</span>
+                    <p id="goalAmountText" class="text-xl font-bold text-gray-200">$100,000.00</p>
                 </div>
             </div>
-        </div>
 
-        <!-- Información del ahorro actual -->
-        <div class="mb-8">
-            <p class="text-lg text-gray-600">
-                Has ahorrado: <span id="currentAmount" class="font-bold text-gray-900 text-2xl">$0</span> de <span class="font-bold text-gray-800">$100,000</span>
-            </p>
-        </div>
-
-        <!-- Sección para agregar ahorros -->
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-            <div class="relative">
-                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
-                 <input type="number" id="amountInput" placeholder="Ingresa un monto" class="pl-7 w-full sm:w-64 p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition">
+            <!-- Barra de Progreso -->
+            <div class="w-full bg-white/10 rounded-full h-5 mb-4 relative overflow-hidden border border-white/20">
+                <div id="progressBar" class="progress-bar-fill bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full"></div>
+                <span id="progressPercentage" class="absolute inset-0 flex items-center justify-center text-sm font-bold text-gray-200 drop-shadow">0%</span>
             </div>
-            <button id="updateButton" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-1 flex items-center gap-2">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                </svg>
-                <span>Agregar Ahorro</span>
-            </button>
-        </div>
-        
-        <!-- Mensaje de felicitaciones (oculto por defecto) -->
-        <div id="congratsMessage" class="hidden mt-8 p-4 bg-green-100 text-green-800 rounded-lg">
-            <p class="font-bold text-xl">¡Felicidades! ¡Has alcanzado tu meta!</p>
-        </div>
 
-        <!-- Historial de Transacciones -->
-        <div class="mt-10 border-t-2 border-gray-100 pt-6 text-left">
-            <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Historial de Ahorros</h2>
-            <div id="historyContainer" class="max-h-60 overflow-y-auto bg-gray-50 p-4 rounded-lg">
-                <ul id="historyList" class="space-y-2">
-                    <!-- Las transacciones se agregarán aquí -->
-                </ul>
+            <!-- Resumen y Mensaje Motivacional -->
+            <div class="text-center mb-8 h-12 flex items-center justify-center">
+                 <p id="remainingText" class="text-base text-gray-200">
+                    Te faltan <strong id="remainingAmountText" class="text-indigo-300">$100,000.00</strong> para alcanzar tu meta.
+                </p>
+                <p id="congratsMessage" class="hidden text-xl font-semibold text-purple-300 animate-pulse">¡Felicidades! ¡Has alcanzado tu meta! 🎉</p>
             </div>
-            <button id="clearHistoryButton" class="mt-4 w-full bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center gap-2">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
-                </svg>
-                <span>Borrar Historial</span>
-            </button>
-        </div>
 
+
+            <!-- Sección de Acciones -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Añadir Fondos -->
+                <div class="bg-white/10 p-4 rounded-lg">
+                    <label for="addAmount" class="block text-sm font-medium text-gray-200 mb-2">Añadir fondos</label>
+                    <div class="flex">
+                        <input type="number" id="addAmount" name="addAmount" class="w-full p-2 border-0 rounded-l-md bg-slate-900/40 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-400 focus:outline-none" placeholder="Ej: 500">
+                        <button id="addButton" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold p-3 rounded-r-md transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Retirar Fondos -->
+                <div class="bg-white/10 p-4 rounded-lg">
+                     <label for="subtractAmount" class="block text-sm font-medium text-gray-200 mb-2">Retirar fondos</label>
+                    <div class="flex">
+                        <input type="number" id="subtractAmount" name="subtractAmount" class="w-full p-2 border-0 rounded-l-md bg-slate-900/40 text-white placeholder-gray-400 focus:ring-2 focus:ring-rose-500 focus:outline-none" placeholder="Ej: 100">
+                        <button id="subtractButton" class="bg-rose-600 hover:bg-rose-500 text-white font-bold p-3 rounded-r-md transition-colors">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botón de Reinicio -->
+            <div class="mt-8 text-center">
+                <button id="resetButton" class="text-sm text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-colors">
+                    Reiniciar progreso
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmación para Reiniciar -->
+    <div id="resetModal" class="modal-overlay fixed inset-0 bg-black/60 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="bg-gray-800 rounded-lg p-6 shadow-xl w-full max-w-sm text-center">
+            <h3 class="text-lg font-bold mb-2">¿Estás seguro?</h3>
+            <p class="text-gray-300 mb-6">Todo tu progreso de ahorro se perderá permanentemente.</p>
+            <div class="flex justify-center gap-4">
+                <button id="cancelReset" class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-md transition-colors">Cancelar</button>
+                <button id="confirmReset" class="px-6 py-2 bg-red-600 hover:bg-red-500 rounded-md transition-colors font-semibold">Sí, reiniciar</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        const goal = 100000;
-        let transactions = [];
+        const GOAL = 100000;
+        let currentAmount = parseFloat(localStorage.getItem('savingsAmount')) || 0;
 
+        const currentAmountText = document.getElementById('currentAmountText');
+        const goalAmountText = document.getElementById('goalAmountText');
+        const remainingAmountText = document.getElementById('remainingAmountText');
         const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
-        const currentAmountText = document.getElementById('currentAmount');
-        const amountInput = document.getElementById('amountInput');
-        const updateButton = document.getElementById('updateButton');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const remainingText = document.getElementById('remainingText');
         const congratsMessage = document.getElementById('congratsMessage');
-        const historyList = document.getElementById('historyList');
-        const clearHistoryButton = document.getElementById('clearHistoryButton');
         
-        // --- LÓGICA DE CONFETI ---
-        const confettiCanvas = document.getElementById('confetti-canvas');
-        const confettiCtx = confettiCanvas.getContext('2d');
-        let confettiParticles = [];
-        const colors = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
-
-        function triggerConfetti() {
-            confettiCanvas.width = window.innerWidth;
-            confettiCanvas.height = window.innerHeight;
-            confettiParticles = [];
-            for (let i = 0; i < 150; i++) {
-                confettiParticles.push({
-                    x: Math.random() * confettiCanvas.width,
-                    y: -Math.random() * confettiCanvas.height,
-                    size: Math.random() * 8 + 4,
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    speed: Math.random() * 3 + 2,
-                    angle: Math.random() * Math.PI * 2,
-                });
-            }
-            animateConfetti();
-        }
-
-        let animationFrameId;
-        function animateConfetti() {
-            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-            let allParticlesOffScreen = true;
-            confettiParticles.forEach(p => {
-                p.y += p.speed;
-                p.x += Math.sin(p.angle) * 0.5;
-                p.angle += 0.01;
-
-                if (p.y < confettiCanvas.height) {
-                    allParticlesOffScreen = false;
-                }
-
-                confettiCtx.fillStyle = p.color;
-                confettiCtx.beginPath();
-                confettiCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                confettiCtx.fill();
-            });
-
-            if (allParticlesOffScreen) {
-                cancelAnimationFrame(animationFrameId);
-                 confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-            } else {
-                animationFrameId = requestAnimationFrame(animateConfetti);
-            }
-        }
+        const addAmountInput = document.getElementById('addAmount');
+        const subtractAmountInput = document.getElementById('subtractAmount');
+        const addButton = document.getElementById('addButton');
+        const subtractButton = document.getElementById('subtractButton');
+        const resetButton = document.getElementById('resetButton');
         
-        function loadTransactions() {
-            const savedTransactions = localStorage.getItem('savingsHistory');
-            if (savedTransactions) {
-                transactions = JSON.parse(savedTransactions);
-            }
-            renderHistory();
-            updateUI();
-        }
-        
-        function saveTransactions() {
-            localStorage.setItem('savingsHistory', JSON.stringify(transactions));
-        }
+        const resetModal = document.getElementById('resetModal');
+        const cancelReset = document.getElementById('cancelReset');
+        const confirmReset = document.getElementById('confirmReset');
 
-        function renderHistory() {
-            historyList.innerHTML = '';
-            if (transactions.length === 0) {
-                 historyList.innerHTML = '<li class="text-gray-500 text-center py-4">Aún no hay registros.</li>';
-                 return;
-            }
-            [...transactions].reverse().forEach(tx => {
-                const li = document.createElement('li');
-                li.className = 'flex justify-between items-center bg-white p-3 rounded-lg shadow-sm';
-                const formattedAmount = tx.amount.toLocaleString('es-DO', { style: 'currency', currency: 'DOP' });
-                li.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-                        </svg>
-                        <span class="text-gray-600">${tx.date}</span>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <span class="font-semibold text-green-600 text-lg">${formattedAmount}</span>
-                        <button class="delete-btn text-gray-400 hover:text-red-500 transition-colors" data-id="${tx.id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </div>
-                `;
-                historyList.appendChild(li);
-            });
-            
-            // Adjuntar event listeners a los nuevos botones de eliminar
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', (event) => {
-                    const idToDelete = Number(event.currentTarget.dataset.id);
-                    handleDelete(idToDelete);
-                });
-            });
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-DO', {
+                style: 'currency',
+                currency: 'DOP'
+            }).format(amount);
         }
 
         function updateUI() {
-            const currentSavings = transactions.reduce((total, tx) => total + tx.amount, 0);
-            const savingsForCalc = Math.min(currentSavings, goal);
-            const percentage = goal > 0 ? (savingsForCalc / goal) * 100 : 0;
+            currentAmount = Math.max(0, currentAmount); // No permitir valores negativos
+            const cappedAmount = Math.min(currentAmount, GOAL); // Para el cálculo de la barra
 
-            const formattedSavings = currentSavings.toLocaleString('es-DO');
-            const formattedGoal = goal.toLocaleString('es-DO');
+            const percentage = (cappedAmount / GOAL) * 100;
+            const remaining = Math.max(0, GOAL - currentAmount);
 
-            progressBar.style.width = percentage + '%';
-            progressText.textContent = Math.floor(percentage) + '%';
-            currentAmountText.parentElement.innerHTML = `Has ahorrado: <span id="currentAmount" class="font-bold text-gray-900 text-2xl">$${formattedSavings}</span> de <span class="font-bold text-gray-800">$${formattedGoal}</span>`;
+            currentAmountText.textContent = formatCurrency(currentAmount);
+            goalAmountText.textContent = formatCurrency(GOAL);
+            remainingAmountText.textContent = formatCurrency(remaining);
+            progressPercentage.textContent = `${percentage.toFixed(0)}%`;
+            progressBar.style.width = `${percentage}%`;
 
-            if (currentSavings >= goal) {
-                if (!congratsMessage.classList.contains('goal-reached')) {
-                    congratsMessage.classList.remove('hidden');
-                    congratsMessage.classList.add('goal-reached');
-                    triggerConfetti();
-                }
+            if (currentAmount >= GOAL) {
+                congratsMessage.classList.remove('hidden');
+                remainingText.classList.add('hidden');
             } else {
                 congratsMessage.classList.add('hidden');
-                congratsMessage.classList.remove('goal-reached');
+                remainingText.classList.remove('hidden');
             }
+            
+            localStorage.setItem('savingsAmount', currentAmount.toString());
         }
-        
-        function handleUpdate() {
-            const amountToAdd = parseFloat(amountInput.value);
 
+        function handleAdd() {
+            const amountToAdd = parseFloat(addAmountInput.value);
             if (!isNaN(amountToAdd) && amountToAdd > 0) {
-                const newTransaction = {
-                    id: Date.now(), // ID único para cada transacción
-                    amount: amountToAdd,
-                    date: new Date().toLocaleDateString('es-DO')
-                };
-                transactions.push(newTransaction);
-                
-                saveTransactions();
-                renderHistory();
+                currentAmount += amountToAdd;
                 updateUI();
-                
-                amountInput.value = '';
-                amountInput.blur();
-            } else {
-                amountInput.classList.add('border-red-500', 'ring-red-500');
-                setTimeout(() => {
-                    amountInput.classList.remove('border-red-500', 'ring-red-500');
-                }, 2000);
+                addAmountInput.value = '';
             }
+        }
+
+        function handleSubtract() {
+            const amountToSubtract = parseFloat(subtractAmountInput.value);
+            if (!isNaN(amountToSubtract) && amountToSubtract > 0) {
+                currentAmount -= amountToSubtract;
+                updateUI();
+                subtractAmountInput.value = '';
+            }
+        }
+
+        function handleReset() {
+            currentAmount = 0;
+            updateUI();
+            closeResetModal();
         }
         
-        /**
-         * Maneja la eliminación de una transacción específica.
-         * @param {number} transactionId - El ID de la transacción a eliminar.
-         */
-        function handleDelete(transactionId) {
-            transactions = transactions.filter(tx => tx.id !== transactionId);
-            saveTransactions();
-            renderHistory();
-            updateUI();
+        function openResetModal() {
+            resetModal.classList.remove('opacity-0', 'pointer-events-none');
         }
 
-        function handleClearHistory() {
-            if(confirm('¿Estás seguro de que quieres borrar todo el historial? Esta acción no se puede deshacer.')) {
-                transactions = [];
-                saveTransactions();
-                renderHistory();
-                updateUI();
-            }
+        function closeResetModal() {
+            resetModal.classList.add('opacity-0', 'pointer-events-none');
         }
 
-        updateButton.addEventListener('click', handleUpdate);
-        clearHistoryButton.addEventListener('click', handleClearHistory);
-        amountInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                handleUpdate();
-            }
+        addButton.addEventListener('click', handleAdd);
+        subtractButton.addEventListener('click', handleSubtract);
+        resetButton.addEventListener('click', openResetModal);
+
+        addAmountInput.addEventListener('keydown', (e) => e.key === 'Enter' && handleAdd());
+        subtractAmountInput.addEventListener('keydown', (e) => e.key === 'Enter' && handleSubtract());
+
+        cancelReset.addEventListener('click', closeResetModal);
+        confirmReset.addEventListener('click', handleReset);
+        resetModal.addEventListener('click', (e) => {
+             if (e.target === resetModal) closeResetModal();
         });
 
-        document.addEventListener('DOMContentLoaded', loadTransactions);
+        document.addEventListener('DOMContentLoaded', updateUI);
     </script>
+
 </body>
 </html>
+
 
