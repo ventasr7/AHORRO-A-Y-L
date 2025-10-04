@@ -103,7 +103,7 @@
         // Obtener transacciones y meta del almacenamiento local
         const localStorageTransactions = JSON.parse(localStorage.getItem('transactions'));
         let transactions = localStorage.getItem('transactions') !== null ? localStorageTransactions : [];
-        let savingsGoal = localStorage.getItem('savingsGoal') !== null ? parseFloat(localStorage.getItem('savingsGoal')) : 1000;
+        let savingsGoal = localStorage.getItem('savingsGoal') !== null ? parseFloat(localStorage.getItem('savingsGoal')) : 100000;
 
         // Formatear número como moneda
         function formatCurrency(num) {
@@ -225,3 +225,4 @@
     </script>
 </body>
 </html>
+
