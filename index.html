@@ -3,277 +3,321 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retroceso / Desperdicio</title>
+    <title>Mi Capital IA - Planificador Financiero</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f1f5f9;
-            font-family: 'Inter', sans-serif;
-        }
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
-        select, input {
-            border: 1px solid #cbd5e1;
-            padding: 0.75rem;
-            border-radius: 8px;
-            width: 100%;
-        }
-        .btn-delete {
-            background-color: #fee2e2;
-            color: #dc2626;
-            padding: 0.5rem;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-        .btn-delete:hover {
-            background-color: #dc2626;
-            color: white;
-        }
-        .tipo-badge {
-            padding: 2px 8px;
-            border-radius: 9999px;
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-        .bg-desperdicio { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-        .bg-reproceso { background-color: #fffbeb; color: #92400e; border: 1px solid #fef3c7; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="bg-slate-100 min-h-screen pb-20">
 
-    <div class="max-w-5xl mx-auto">
-        <header class="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-3xl font-black text-slate-800 uppercase tracking-tighter italic">RETROCESO / DESPERDICIO</h1>
-                <p class="text-slate-500 font-medium">Control de cantidades y sumatorias detalladas</p>
+    <div id="app" class="max-w-6xl mx-auto mt-8 px-4">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200">
+            
+            <div class="bg-slate-900 p-8 text-white flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-emerald-500 rounded-2xl shadow-lg shadow-emerald-500/20">
+                        <i class="fas fa-robot text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-black uppercase tracking-tighter italic leading-none">Mi Capital IA</h1>
+                        <p id="mode-label" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Configuración Inicial</p>
+                    </div>
+                </div>
+                <div id="header-stats" class="hidden flex gap-6">
+                    <div class="text-right">
+                        <span class="text-[9px] font-black text-slate-500 block uppercase">Ingreso <span id="stat-freq"></span></span>
+                        <span id="stat-income" class="text-lg font-black text-white">$0</span>
+                    </div>
+                    <div class="text-right border-l border-white/10 pl-6">
+                        <span id="stat-goal-name" class="text-[9px] font-black text-slate-500 block uppercase">Meta</span>
+                        <span id="stat-goal-val" class="text-lg font-black text-emerald-400">$0</span>
+                    </div>
+                    <button onclick="resetData()" class="ml-4 text-slate-500 hover:text-red-400 text-xs uppercase font-black tracking-widest">
+                        <i class="fas fa-trash-alt mr-1"></i> Borrar Todo
+                    </button>
+                </div>
             </div>
-            <div class="bg-slate-800 text-white p-4 rounded-xl shadow-lg min-w-[200px] text-center">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sumatoria Global</p>
-                <p id="totalSumatoria" class="text-4xl font-black">0</p>
-            </div>
-        </header>
 
-        <!-- Panel de Estadísticas por Categoría -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div class="card p-5 border-l-8 border-red-500 flex justify-between items-center">
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase">Total Desperdicio</p>
-                    <p id="totalDesperdicio" class="text-3xl font-black text-red-600">0</p>
-                </div>
-                <div class="bg-red-50 p-2 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                </div>
-            </div>
-            <div class="card p-5 border-l-8 border-amber-500 flex justify-between items-center">
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase">Total Reproceso</p>
-                    <p id="totalReproceso" class="text-3xl font-black text-amber-600">0</p>
-                </div>
-                <div class="bg-amber-50 p-2 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                </div>
-            </div>
-        </div>
+            <div class="p-8">
+                
+                <div id="step-1" class="space-y-8">
+                    <div class="text-center mb-10">
+                        <h2 class="text-3xl font-black text-slate-800 uppercase tracking-tighter">¿Cómo recibes tu dinero?</h2>
+                    </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Formulario -->
-            <div class="lg:col-span-1">
-                <div class="card p-6 border-t-4 border-blue-600 sticky top-4">
-                    <form id="registroForm" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Categoría</label>
-                            <select id="inputTipo" required class="font-bold">
-                                <option value="DESPERDICIO">DESPERDICIO</option>
-                                <option value="REPROCESO">REPROCESO</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha de Registro</label>
-                            <input type="date" id="inputFecha" required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cantidad Original</label>
-                            <input type="number" id="inputCantidad" step="any" placeholder="0.00" required class="text-lg font-bold">
-                            <p class="text-[10px] text-blue-500 mt-1 font-bold italic">* Se restarán 20 unidades</p>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tanda</label>
-                                <select id="inputTanda" required>
-                                    <option value="C-1">C-1</option><option value="C-2">C-2</option><option value="C-3">C-3</option>
-                                    <option value="A-1">A-1</option><option value="A-2">A-2</option><option value="A-3">A-3</option>
-                                    <option value="B-1">B-1</option><option value="B-2">B-2</option><option value="B-3">B-3</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Línea</label>
-                                <select id="inputLinea" required>
-                                    <option value="LPL01">LPL01</option><option value="LPL02">LPL02</option>
-                                    <option value="LFI01">LFI01</option><option value="LFI02">LFI02</option>
-                                    <option value="LPC02">LPC02</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="w-full bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-black transition-all uppercase text-sm tracking-widest">
-                            Guardar Registro
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <button onclick="setMode('quincenal')" class="group p-8 border-4 border-slate-50 rounded-[2.5rem] hover:border-emerald-500 transition-all text-left bg-slate-50/50">
+                            <h3 class="text-xl font-black uppercase text-slate-700">Quincenal</h3>
+                            <p class="text-sm text-slate-400 mt-2">Cada 15 y 30 del mes.</p>
                         </button>
-                    </form>
-                </div>
-            </div>
 
-            <!-- Tabla -->
-            <div class="lg:col-span-2">
-                <div class="card overflow-hidden">
-                    <div class="p-4 bg-slate-50 border-b flex justify-between items-center">
-                        <h2 class="font-bold text-slate-700 text-sm uppercase">Historial Almacenado</h2>
-                        <button onclick="borrarTodo()" class="text-[10px] font-bold text-red-600 border border-red-200 px-2 py-1 rounded hover:bg-red-50 uppercase">Borrar Todo</button>
+                        <button onclick="setMode('semanal')" class="group p-8 border-4 border-slate-50 rounded-[2.5rem] hover:border-indigo-500 transition-all text-left bg-slate-50/50">
+                            <h3 class="text-xl font-black uppercase text-slate-700">Semanal</h3>
+                            <p class="text-sm text-slate-400 mt-2">Cada 7 días.</p>
+                        </button>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="bg-slate-50 text-[10px] uppercase text-slate-400 border-b">
-                                    <th class="px-4 py-3">Fecha / Tipo</th>
-                                    <th class="px-4 py-3">Cantidad (-20)</th>
-                                    <th class="px-4 py-3">Tanda/Línea</th>
-                                    <th class="px-4 py-3 text-center">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaCuerpo" class="divide-y divide-slate-100">
-                                <!-- Filas dinámicas -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div id="mensajeVacio" class="p-12 text-center text-slate-300 italic hidden">
-                        No hay registros guardados.
+
+                    <div id="config-inputs" class="hidden mt-10 space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-4">
+                                <label class="text-xs font-black text-slate-400 uppercase tracking-widest">¿Cuánto ganas por pago?</label>
+                                <input type="number" id="input-income" class="w-full p-8 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-[2rem] text-4xl font-black outline-none" placeholder="0.00">
+                            </div>
+                            <div class="space-y-4">
+                                <label class="text-xs font-black text-slate-400 uppercase tracking-widest">Nombre de tu Meta / Monto Objetivo</label>
+                                <input type="text" id="input-goal-name" class="w-full p-4 bg-slate-50 border rounded-2xl mb-2 font-bold" placeholder="Ej: Ahorro Navideño">
+                                <input type="number" id="input-goal-target" class="w-full p-4 bg-slate-50 border rounded-2xl font-black" placeholder="Monto objetivo $">
+                            </div>
+                        </div>
+                        <button onclick="saveAndGoTo(3)" class="w-full bg-slate-900 text-white p-7 rounded-[2rem] font-black uppercase shadow-xl hover:bg-emerald-600">
+                            Guardar y Continuar
+                        </button>
                     </div>
                 </div>
+
+                <div id="step-3" class="hidden space-y-6">
+                    <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-200 space-y-5">
+                        <h3 class="font-black text-xs uppercase text-slate-400">Registrar un Pago</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" id="debt-name" placeholder="¿Qué pagarás?" class="p-5 rounded-2xl border font-bold">
+                            <input type="number" id="debt-amount" placeholder="Monto $" class="p-5 rounded-2xl border font-bold">
+                        </div>
+                        <div class="flex items-center justify-between">
+                             <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="debt-recurring" class="w-6 h-6 accent-emerald-500">
+                                <span class="text-[11px] font-black text-slate-500 uppercase">Gasto recurrente</span>
+                            </label>
+                            <button onclick="addDebt()" class="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black uppercase text-xs">Añadir</button>
+                        </div>
+                    </div>
+                    <div id="debts-list" class="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar"></div>
+                    <button onclick="calculatePlan()" class="w-full bg-emerald-600 text-white p-7 rounded-[2rem] font-black uppercase shadow-2xl">
+                        Calcular Mi Plan
+                    </button>
+                </div>
+
+                <div id="step-4" class="hidden space-y-10">
+                    <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
+                    <div id="saving-card" class="rounded-[3.5rem] p-10 text-white shadow-2xl transition-all duration-500">
+                        <div class="flex flex-col md:flex-row justify-between gap-8 mb-8">
+                            <div>
+                                <h2 class="text-4xl font-black italic uppercase tracking-tighter" id="saving-title">Tu Ahorro</h2>
+                                <p id="saving-goal-label" class="text-xs font-bold uppercase opacity-80 mt-2"></p>
+                            </div>
+                            <div class="bg-black/20 p-8 rounded-[2.5rem] text-center min-w-[200px]">
+                                <span id="suggested-saving" class="text-5xl font-black tracking-tighter">$0</span>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between text-[10px] font-black uppercase">
+                                <span>Llevas: $<span id="current-saved-val">0</span></span>
+                                <span id="percent-val">0%</span>
+                            </div>
+                            <div class="h-10 bg-black/10 rounded-full p-1.5 border border-white/10">
+                                <div id="progress-bar" class="h-full bg-white rounded-full transition-all duration-1000 shadow-lg" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="mt-8 bg-white p-2 rounded-[2rem] flex flex-col md:flex-row gap-2">
+                            <input type="number" id="manual-save-input" class="flex-1 bg-transparent p-4 text-slate-900 font-black outline-none text-xl" placeholder="Ahorro de hoy">
+                            <button onclick="registerManualSave()" class="bg-slate-900 px-8 py-4 rounded-[1.5rem] font-black uppercase text-xs hover:bg-emerald-500">Sumar al Ahorro</button>
+                        </div>
+                    </div>
+                    <button onclick="goToStep(3)" class="w-full p-6 border-2 border-slate-200 rounded-3xl font-black text-xs text-slate-400 uppercase">Ajustar Datos</button>
+                </div>
+
             </div>
         </div>
     </div>
 
     <script>
-        let registros = JSON.parse(localStorage.getItem('db_planta_v2')) || [];
-
-        const form = document.getElementById('registroForm');
-        const tabla = document.getElementById('tablaCuerpo');
-        const totalEl = document.getElementById('totalSumatoria');
-        const totalDesperdicioEl = document.getElementById('totalDesperdicio');
-        const totalReprocesoEl = document.getElementById('totalReproceso');
-        const msgVacio = document.getElementById('mensajeVacio');
-
-        window.onload = () => {
-            const hoy = new Date().toISOString().split('T')[0];
-            document.getElementById('inputFecha').value = hoy;
-            renderizar();
+        // Variables de estado
+        let state = {
+            step: 1,
+            mode: "",
+            income: 0,
+            goalName: "",
+            goalTarget: 0,
+            debts: [],
+            totalSaved: 0
         };
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const fechaVal = document.getElementById('inputFecha').value;
-            const cantOri = parseFloat(document.getElementById('inputCantidad').value);
-            const tipo = document.getElementById('inputTipo').value;
-            const tanda = document.getElementById('inputTanda').value;
-            const linea = document.getElementById('inputLinea').value;
-
-            const cantFinal = cantOri - 20;
-
-            const fObj = new Date(fechaVal + 'T00:00:00');
-            const diaNom = fObj.toLocaleDateString('es-ES', { weekday: 'short' });
-            const fechaFormat = fObj.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
-
-            const nuevo = {
-                id: Date.now(),
-                tipo,
-                dia: diaNom.toUpperCase(),
-                fecha: fechaFormat,
-                cantidad: cantFinal,
-                tanda,
-                linea
-            };
-
-            registros.unshift(nuevo);
-            guardar();
-            document.getElementById('inputCantidad').value = '';
-            document.getElementById('inputCantidad').focus();
-        });
-
-        function guardar() {
-            localStorage.setItem('db_planta_v2', JSON.stringify(registros));
-            renderizar();
-        }
-
-        function eliminar(id) {
-            if (confirm("¿Seguro que quieres eliminar este registro?")) {
-                registros = registros.filter(r => r.id !== id);
-                guardar();
-            }
-        }
-
-        function borrarTodo() {
-            if (confirm("¿BORRAR TODO EL HISTORIAL?")) {
-                registros = [];
-                guardar();
-            }
-        }
-
-        function renderizar() {
-            tabla.innerHTML = '';
-            let sumaGlobal = 0;
-            let sumaDesperdicio = 0;
-            let sumaReproceso = 0;
-
-            if (registros.length === 0) {
-                msgVacio.classList.remove('hidden');
-            } else {
-                msgVacio.classList.add('hidden');
-            }
-
-            registros.forEach(r => {
-                sumaGlobal += r.cantidad;
-                if (r.tipo === 'DESPERDICIO') sumaDesperdicio += r.cantidad;
-                if (r.tipo === 'REPROCESO') sumaReproceso += r.cantidad;
-
-                const claseTipo = r.tipo === 'DESPERDICIO' ? 'bg-desperdicio' : 'bg-reproceso';
+        // Al cargar la página
+        window.onload = () => {
+            const savedState = localStorage.getItem('miCapitalData');
+            if (savedState) {
+                state = JSON.parse(savedState);
+                if (state.mode) setMode(state.mode, false);
+                // Rellenar inputs
+                document.getElementById('input-income').value = state.income || "";
+                document.getElementById('input-goal-name').value = state.goalName || "";
+                document.getElementById('input-goal-target').value = state.goalTarget || "";
                 
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition-colors";
-                tr.innerHTML = `
-                    <td class="px-4 py-4">
-                        <span class="tipo-badge ${claseTipo}">${r.tipo}</span>
-                        <div class="text-[10px] font-bold text-slate-500 mt-1">${r.dia} ${r.fecha}</div>
-                    </td>
-                    <td class="px-4 py-4 font-black text-slate-800 text-lg">${r.cantidad.toLocaleString()}</td>
-                    <td class="px-4 py-4">
-                        <div class="flex flex-col gap-1">
-                            <span class="text-[9px] font-bold text-blue-600 bg-blue-50 px-1 rounded w-fit">TANDA: ${r.tanda}</span>
-                            <span class="text-[9px] font-bold text-slate-600 bg-slate-100 px-1 rounded w-fit">LÍNEA: ${r.linea}</span>
+                renderDebts();
+                if (state.step > 1) goToStep(state.step);
+                if (state.step === 4) calculatePlan(false);
+            }
+        };
+
+        function saveState() {
+            localStorage.setItem('miCapitalData', JSON.stringify(state));
+        }
+
+        function setMode(selected, shouldSave = true) {
+            state.mode = selected;
+            document.getElementById('config-inputs').classList.remove('hidden');
+            document.getElementById('mode-label').innerText = "Modo " + state.mode;
+            if(shouldSave) saveState();
+        }
+
+        function goToStep(step) {
+            state.step = step;
+            document.querySelectorAll('#step-1, #step-3, #step-4').forEach(el => el.classList.add('hidden'));
+            document.getElementById('step-' + step).classList.remove('hidden');
+
+            if(step >= 3) {
+                document.getElementById('header-stats').classList.remove('hidden');
+                document.getElementById('stat-freq').innerText = state.mode;
+                document.getElementById('stat-income').innerText = "$" + state.income;
+                document.getElementById('stat-goal-name').innerText = state.goalName;
+                document.getElementById('stat-goal-val').innerText = "$" + state.goalTarget;
+            }
+            saveState();
+        }
+
+        function saveAndGoTo(step) {
+            state.income = parseFloat(document.getElementById('input-income').value) || 0;
+            state.goalName = document.getElementById('input-goal-name').value || "Mi Meta";
+            state.goalTarget = parseFloat(document.getElementById('input-goal-target').value) || 0;
+            goToStep(step);
+        }
+
+        function addDebt() {
+            const name = document.getElementById('debt-name').value;
+            const amount = parseFloat(document.getElementById('debt-amount').value);
+            const isRecurring = document.getElementById('debt-recurring').checked;
+
+            if (name && amount) {
+                state.debts.push({ id: Date.now(), name, amount, isRecurring });
+                document.getElementById('debt-name').value = '';
+                document.getElementById('debt-amount').value = '';
+                document.getElementById('debt-recurring').checked = false;
+                renderDebts();
+                saveState();
+            }
+        }
+
+        function removeDebt(id) {
+            state.debts = state.debts.filter(d => d.id !== id);
+            renderDebts();
+            saveState();
+        }
+
+        function renderDebts() {
+            const list = document.getElementById('debts-list');
+            list.innerHTML = state.debts.map(d => `
+                <div class="flex justify-between items-center p-5 bg-white border rounded-2xl shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 rounded-xl ${d.isRecurring ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}">
+                            <i class="fas ${d.isRecurring ? 'fa-sync-alt' : 'fa-credit-card'}"></i>
                         </div>
-                    </td>
-                    <td class="px-4 py-4 text-center">
-                        <button onclick="eliminar(${r.id})" class="btn-delete" title="Eliminar registro">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </td>
-                `;
-                tabla.appendChild(tr);
+                        <div>
+                            <p class="font-black text-slate-800 uppercase text-xs">${d.name}</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${d.isRecurring ? 'Gasto Fijo' : 'Pago Único'}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="font-mono font-black text-lg">$${d.amount}</span>
+                        <button onclick="removeDebt(${d.id})" class="text-slate-200 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function calculatePlan(shouldSave = true) {
+            const numPeriods = (state.mode === 'semanal') ? 4 : 2;
+            const grid = document.getElementById('results-grid');
+            grid.innerHTML = "";
+
+            let periodData = Array.from({ length: numPeriods }, (_, i) => ({ id: i + 1, pagos: [], totalOut: 0 }));
+
+            state.debts.forEach((d, index) => {
+                if(d.isRecurring) {
+                    periodData.forEach(p => { p.pagos.push(d); p.totalOut += d.amount; });
+                } else {
+                    const targetPeriod = index % numPeriods;
+                    periodData[targetPeriod].pagos.push(d);
+                    periodData[targetPeriod].totalOut += d.amount;
+                }
             });
 
-            totalEl.innerText = sumaGlobal.toLocaleString();
-            totalDesperdicioEl.innerText = sumaDesperdicio.toLocaleString();
-            totalReprocesoEl.innerText = sumaReproceso.toLocaleString();
+            let totalCleanOverall = 0;
+            periodData.forEach(p => {
+                const clean = state.income - p.totalOut;
+                totalCleanOverall += clean;
+                const color = (state.mode === 'semanal') ? 'indigo' : 'emerald';
+                
+                const card = document.createElement('div');
+                card.className = "bg-white border-2 border-slate-100 rounded-[2.5rem] overflow-hidden flex flex-col shadow-lg";
+                card.innerHTML = `
+                    <div class="bg-slate-50 p-6 flex justify-between items-center border-b">
+                        <span class="w-10 h-10 bg-${color}-500 rounded-xl flex items-center justify-center text-white font-black">${p.id}</span>
+                        <h3 class="font-black text-slate-900 uppercase text-xs">${state.mode} ${p.id}</h3>
+                    </div>
+                    <div class="p-6 flex-1 space-y-2">
+                        ${p.pagos.map(item => `<div class="flex justify-between text-[10px] font-bold uppercase"><span>${item.name}</span><span>$${item.amount}</span></div>`).join('')}
+                    </div>
+                    <div class="p-6 bg-slate-900 text-white">
+                        <div class="flex justify-between items-end border-t border-white/10 pt-4">
+                            <span class="text-[10px] font-black text-${color}-400 uppercase">Saldo Limpio</span>
+                            <span class="text-3xl font-black">$${clean}</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            const avgClean = totalCleanOverall / numPeriods;
+            const suggested = Math.floor(avgClean * 0.4);
+
+            document.getElementById('saving-card').style.backgroundColor = (state.mode === 'semanal') ? '#4f46e5' : '#059669';
+            document.getElementById('saving-title').innerText = "Tu Ahorro " + state.mode;
+            document.getElementById('suggested-saving').innerText = "$" + suggested;
+            document.getElementById('saving-goal-label').innerText = "Meta: " + state.goalName;
+
+            updateProgress();
+            if(shouldSave) goToStep(4);
+        }
+
+        function registerManualSave() {
+            const input = document.getElementById('manual-save-input');
+            const val = parseFloat(input.value);
+            if(!isNaN(val)) {
+                state.totalSaved += val;
+                input.value = "";
+                updateProgress();
+                saveState();
+            }
+        }
+
+        function updateProgress() {
+            const percent = Math.min(100, (state.totalSaved / state.goalTarget) * 100).toFixed(1);
+            document.getElementById('current-saved-val').innerText = state.totalSaved;
+            document.getElementById('percent-val').innerText = percent + "%";
+            document.getElementById('progress-bar').style.width = percent + "%";
+        }
+
+        function resetData() {
+            if(confirm("¿Seguro que quieres borrar todos los datos?")) {
+                localStorage.removeItem('miCapitalData');
+                location.reload();
+            }
         }
     </script>
 </body>
 </html>
-
