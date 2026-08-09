@@ -1,322 +1,726 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Capital IA - Planificador Financiero</title>
+    <title>Alarma Pro & VIP Unlocker</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 0.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-short': 'bounce 0.8s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #090d16;
+            color: #f3f4f6;
+        }
+        .font-digital {
+            font-family: 'Orbitron', monospace;
+        }
+        .glow-gold {
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.35);
+        }
+        .glow-red {
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.6);
+        }
+        .glow-blue {
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.3);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen pb-20">
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden select-none bg-slate-950 text-slate-100">
 
-    <div id="app" class="max-w-6xl mx-auto mt-8 px-4">
-        <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200">
+    <!-- Top Bar -->
+    <header class="w-full border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-30 px-4 py-3">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-red-600 flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-bell text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-amber-400 via-amber-200 to-red-400 bg-clip-text text-transparent">
+                        UltraAlarm <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">VIP Edition</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">La única alarma que valora tu tiempo (literalmente)</p>
+                </div>
+            </div>
+
+            <div id="liveClock" class="font-digital text-amber-400 font-bold text-lg md:text-xl tracking-wider bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800">
+                00:00:00
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl w-full mx-auto p-4 md:p-6 flex-1 flex flex-col justify-center items-center gap-8">
+
+        <!-- Mode Selector Tabs -->
+        <div class="flex bg-slate-900 p-1.5 rounded-2xl border border-slate-800 w-full max-w-md shadow-inner">
+            <button id="tabTimer" onclick="switchTab('timer')" class="flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md">
+                <i class="fa-solid fa-stopwatch mr-2"></i>Cuenta Regresiva
+            </button>
+            <button id="tabClock" onclick="switchTab('clock')" class="flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-300 text-slate-400 hover:text-slate-200">
+                <i class="fa-regular fa-clock mr-2"></i>Hora Específica
+            </button>
+        </div>
+
+        <!-- MAIN DISPLAY CONTAINER -->
+        <div class="relative w-full max-w-md flex flex-col items-center">
             
-            <div class="bg-slate-900 p-8 text-white flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="p-3 bg-emerald-500 rounded-2xl shadow-lg shadow-emerald-500/20">
-                        <i class="fas fa-robot text-white text-xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-black uppercase tracking-tighter italic leading-none">Mi Capital IA</h1>
-                        <p id="mode-label" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Configuración Inicial</p>
-                    </div>
-                </div>
-                <div id="header-stats" class="hidden flex gap-6">
-                    <div class="text-right">
-                        <span class="text-[9px] font-black text-slate-500 block uppercase">Ingreso <span id="stat-freq"></span></span>
-                        <span id="stat-income" class="text-lg font-black text-white">$0</span>
-                    </div>
-                    <div class="text-right border-l border-white/10 pl-6">
-                        <span id="stat-goal-name" class="text-[9px] font-black text-slate-500 block uppercase">Meta</span>
-                        <span id="stat-goal-val" class="text-lg font-black text-emerald-400">$0</span>
-                    </div>
-                    <button onclick="resetData()" class="ml-4 text-slate-500 hover:text-red-400 text-xs uppercase font-black tracking-widest">
-                        <i class="fas fa-trash-alt mr-1"></i> Borrar Todo
-                    </button>
-                </div>
-            </div>
-
-            <div class="p-8">
+            <!-- Circular Progress / Digital Display Container -->
+            <div id="displayCard" class="w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-8 flex flex-col items-center shadow-2xl relative overflow-hidden backdrop-blur-xl transition-all duration-500">
                 
-                <div id="step-1" class="space-y-8">
-                    <div class="text-center mb-10">
-                        <h2 class="text-3xl font-black text-slate-800 uppercase tracking-tighter">¿Cómo recibes tu dinero?</h2>
+                <!-- Ambient Background Glow -->
+                <div id="ambientGlow" class="absolute -top-24 -left-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl transition-all duration-500"></div>
+                <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-red-500/10 rounded-full blur-3xl"></div>
+
+                <span id="statusBadge" class="text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full bg-slate-800 text-slate-400 mb-6 border border-slate-700">
+                    SISTEMA LISTO
+                </span>
+
+                <!-- TIMER MODE VIEW -->
+                <div id="timerView" class="w-full flex flex-col items-center">
+                    <!-- Giant Digital Display -->
+                    <div class="font-digital text-5xl md:text-6xl font-black tracking-wider text-amber-400 my-4 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]" id="timerDisplay">
+                        00:00:10
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <button onclick="setMode('quincenal')" class="group p-8 border-4 border-slate-50 rounded-[2.5rem] hover:border-emerald-500 transition-all text-left bg-slate-50/50">
-                            <h3 class="text-xl font-black uppercase text-slate-700">Quincenal</h3>
-                            <p class="text-sm text-slate-400 mt-2">Cada 15 y 30 del mes.</p>
-                        </button>
-
-                        <button onclick="setMode('semanal')" class="group p-8 border-4 border-slate-50 rounded-[2.5rem] hover:border-indigo-500 transition-all text-left bg-slate-50/50">
-                            <h3 class="text-xl font-black uppercase text-slate-700">Semanal</h3>
-                            <p class="text-sm text-slate-400 mt-2">Cada 7 días.</p>
-                        </button>
-                    </div>
-
-                    <div id="config-inputs" class="hidden mt-10 space-y-8">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="space-y-4">
-                                <label class="text-xs font-black text-slate-400 uppercase tracking-widest">¿Cuánto ganas por pago?</label>
-                                <input type="number" id="input-income" class="w-full p-8 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-[2rem] text-4xl font-black outline-none" placeholder="0.00">
+                    <!-- Custom Seconds Input / Sliders when stopped -->
+                    <div id="timerControlsInput" class="w-full mt-4 space-y-4">
+                        <div class="flex items-center justify-center gap-2">
+                            <div class="flex flex-col items-center">
+                                <label class="text-xs text-slate-400 mb-1">Minutos</label>
+                                <input type="number" id="inputMinutes" min="0" max="99" value="0" class="w-20 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-center text-xl font-digital text-amber-300 focus:outline-none focus:border-amber-500">
                             </div>
-                            <div class="space-y-4">
-                                <label class="text-xs font-black text-slate-400 uppercase tracking-widest">Nombre de tu Meta / Monto Objetivo</label>
-                                <input type="text" id="input-goal-name" class="w-full p-4 bg-slate-50 border rounded-2xl mb-2 font-bold" placeholder="Ej: Ahorro Navideño">
-                                <input type="number" id="input-goal-target" class="w-full p-4 bg-slate-50 border rounded-2xl font-black" placeholder="Monto objetivo $">
+                            <span class="text-2xl font-bold text-slate-600 mt-5">:</span>
+                            <div class="flex flex-col items-center">
+                                <label class="text-xs text-slate-400 mb-1">Segundos</label>
+                                <input type="number" id="inputSeconds" min="0" max="59" value="10" class="w-20 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-center text-xl font-digital text-amber-300 focus:outline-none focus:border-amber-500">
                             </div>
                         </div>
-                        <button onclick="saveAndGoTo(3)" class="w-full bg-slate-900 text-white p-7 rounded-[2rem] font-black uppercase shadow-xl hover:bg-emerald-600">
-                            Guardar y Continuar
-                        </button>
+
+                        <!-- Quick Presets -->
+                        <div class="grid grid-cols-4 gap-2 pt-2">
+                            <button onclick="setTimerPreset(5)" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 transition">5 sec</button>
+                            <button onclick="setTimerPreset(10)" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 transition">10 sec</button>
+                            <button onclick="setTimerPreset(30)" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 transition">30 sec</button>
+                            <button onclick="setTimerPreset(60)" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 transition">1 min</button>
+                        </div>
                     </div>
                 </div>
 
-                <div id="step-3" class="hidden space-y-6">
-                    <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-200 space-y-5">
-                        <h3 class="font-black text-xs uppercase text-slate-400">Registrar un Pago</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" id="debt-name" placeholder="¿Qué pagarás?" class="p-5 rounded-2xl border font-bold">
-                            <input type="number" id="debt-amount" placeholder="Monto $" class="p-5 rounded-2xl border font-bold">
-                        </div>
-                        <div class="flex items-center justify-between">
-                             <label class="flex items-center gap-3 cursor-pointer">
-                                <input type="checkbox" id="debt-recurring" class="w-6 h-6 accent-emerald-500">
-                                <span class="text-[11px] font-black text-slate-500 uppercase">Gasto recurrente</span>
-                            </label>
-                            <button onclick="addDebt()" class="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black uppercase text-xs">Añadir</button>
-                        </div>
-                    </div>
-                    <div id="debts-list" class="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar"></div>
-                    <button onclick="calculatePlan()" class="w-full bg-emerald-600 text-white p-7 rounded-[2rem] font-black uppercase shadow-2xl">
-                        Calcular Mi Plan
-                    </button>
+                <!-- ALARM CLOCK MODE VIEW -->
+                <div id="clockView" class="w-full flex-col items-center hidden">
+                    <p class="text-slate-400 text-xs mb-3 text-center">Selecciona la hora exacta a la que debe sonar:</p>
+                    <input type="time" id="alarmTimeInput" step="1" class="bg-slate-950 border border-slate-800 rounded-2xl px-6 py-3 text-3xl font-digital text-amber-400 focus:outline-none focus:border-amber-500 my-4 shadow-inner">
+                    <p id="alarmClockCountdown" class="text-xs text-amber-400/80 font-mono mt-1 min-h-[1.25rem]"></p>
                 </div>
 
-                <div id="step-4" class="hidden space-y-10">
-                    <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
-                    <div id="saving-card" class="rounded-[3.5rem] p-10 text-white shadow-2xl transition-all duration-500">
-                        <div class="flex flex-col md:flex-row justify-between gap-8 mb-8">
-                            <div>
-                                <h2 class="text-4xl font-black italic uppercase tracking-tighter" id="saving-title">Tu Ahorro</h2>
-                                <p id="saving-goal-label" class="text-xs font-bold uppercase opacity-80 mt-2"></p>
-                            </div>
-                            <div class="bg-black/20 p-8 rounded-[2.5rem] text-center min-w-[200px]">
-                                <span id="suggested-saving" class="text-5xl font-black tracking-tighter">$0</span>
-                            </div>
-                        </div>
-                        <div class="space-y-4">
-                            <div class="flex justify-between text-[10px] font-black uppercase">
-                                <span>Llevas: $<span id="current-saved-val">0</span></span>
-                                <span id="percent-val">0%</span>
-                            </div>
-                            <div class="h-10 bg-black/10 rounded-full p-1.5 border border-white/10">
-                                <div id="progress-bar" class="h-full bg-white rounded-full transition-all duration-1000 shadow-lg" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <div class="mt-8 bg-white p-2 rounded-[2rem] flex flex-col md:flex-row gap-2">
-                            <input type="number" id="manual-save-input" class="flex-1 bg-transparent p-4 text-slate-900 font-black outline-none text-xl" placeholder="Ahorro de hoy">
-                            <button onclick="registerManualSave()" class="bg-slate-900 px-8 py-4 rounded-[1.5rem] font-black uppercase text-xs hover:bg-emerald-500">Sumar al Ahorro</button>
-                        </div>
-                    </div>
-                    <button onclick="goToStep(3)" class="w-full p-6 border-2 border-slate-200 rounded-3xl font-black text-xs text-slate-400 uppercase">Ajustar Datos</button>
+                <!-- Sound Selector -->
+                <div class="w-full mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                    <span class="text-xs text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-music text-amber-500"></i> Sonido:
+                    </span>
+                    <select id="soundType" class="bg-slate-950 text-xs text-amber-300 border border-slate-800 rounded-lg px-2.5 py-1.5 focus:outline-none">
+                        <option value="nuclear">🚨 Sirena Nuclear Extreme</option>
+                        <option value="retro">👾 Beep Digital 8-Bit</option>
+                        <option value="annoying">🎺 Corneta Infierno</option>
+                        <option value="techno">⚡ Techno Pulso Alarma</option>
+                    </select>
                 </div>
 
             </div>
+
+            <!-- Main Action Buttons -->
+            <div class="w-full flex gap-3 mt-6">
+                <button id="btnStart" onclick="startAlarmSystem()" class="flex-1 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 text-slate-950 font-extrabold text-lg shadow-lg shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-play"></i> ACTIVAR ALARMA
+                </button>
+                <button id="btnCancel" onclick="cancelAlarmSystem()" class="hidden flex-1 py-4 rounded-2xl bg-slate-800 text-slate-300 border border-slate-700 font-bold text-lg hover:bg-slate-700 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-xmark"></i> CANCELAR
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ALARM RINGING FULLSCREEN OVERLAY -->
+    <div id="alarmRingingOverlay" class="fixed inset-0 bg-red-950/95 backdrop-blur-2xl z-50 flex flex-col items-center justify-center p-6 hidden transition-all duration-300">
+        
+        <!-- Flashing background effects -->
+        <div class="absolute inset-0 bg-red-600/20 animate-pulse-fast pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col items-center text-center max-w-lg">
+            
+            <div class="w-24 h-24 rounded-full bg-red-600 text-white flex items-center justify-center text-4xl mb-6 shadow-2xl animate-bounce-short border-4 border-red-400">
+                <i class="fa-solid fa-bell-ring"></i>
+            </div>
+
+            <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight uppercase animate-pulse">
+                ¡TIEMPO CUMPLIDO!
+            </h2>
+            <p class="text-red-200 mt-2 font-medium">La alarma se encuentra activa y sonando a máximo volumen.</p>
+
+            <div class="mt-8 w-full">
+                <!-- Massive Stop Button triggering the prank Paywall -->
+                <button onclick="openPaywallModal()" class="w-full py-5 rounded-2xl bg-white text-red-600 hover:bg-red-50 font-black text-2xl shadow-2xl tracking-wide uppercase hover:scale-105 active:scale-95 transition-all duration-200 border-4 border-red-200 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-power-off"></i> APAGAR ALARMA
+                </button>
+                <p class="text-xs text-red-300/70 mt-3">* Al presionar apagar se verificará tu membresía activa.</p>
+            </div>
+
         </div>
     </div>
 
-    <script>
-        // Variables de estado
-        let state = {
-            step: 1,
-            mode: "",
-            income: 0,
-            goalName: "",
-            goalTarget: 0,
-            debts: [],
-            totalSaved: 0
-        };
 
-        // Al cargar la página
-        window.onload = () => {
-            const savedState = localStorage.getItem('miCapitalData');
-            if (savedState) {
-                state = JSON.parse(savedState);
-                if (state.mode) setMode(state.mode, false);
-                // Rellenar inputs
-                document.getElementById('input-income').value = state.income || "";
-                document.getElementById('input-goal-name').value = state.goalName || "";
-                document.getElementById('input-goal-target').value = state.goalTarget || "";
-                
-                renderDebts();
-                if (state.step > 1) goToStep(state.step);
-                if (state.step === 4) calculatePlan(false);
-            }
-        };
-
-        function saveState() {
-            localStorage.setItem('miCapitalData', JSON.stringify(state));
-        }
-
-        function setMode(selected, shouldSave = true) {
-            state.mode = selected;
-            document.getElementById('config-inputs').classList.remove('hidden');
-            document.getElementById('mode-label').innerText = "Modo " + state.mode;
-            if(shouldSave) saveState();
-        }
-
-        function goToStep(step) {
-            state.step = step;
-            document.querySelectorAll('#step-1, #step-3, #step-4').forEach(el => el.classList.add('hidden'));
-            document.getElementById('step-' + step).classList.remove('hidden');
-
-            if(step >= 3) {
-                document.getElementById('header-stats').classList.remove('hidden');
-                document.getElementById('stat-freq').innerText = state.mode;
-                document.getElementById('stat-income').innerText = "$" + state.income;
-                document.getElementById('stat-goal-name').innerText = state.goalName;
-                document.getElementById('stat-goal-val').innerText = "$" + state.goalTarget;
-            }
-            saveState();
-        }
-
-        function saveAndGoTo(step) {
-            state.income = parseFloat(document.getElementById('input-income').value) || 0;
-            state.goalName = document.getElementById('input-goal-name').value || "Mi Meta";
-            state.goalTarget = parseFloat(document.getElementById('input-goal-target').value) || 0;
-            goToStep(step);
-        }
-
-        function addDebt() {
-            const name = document.getElementById('debt-name').value;
-            const amount = parseFloat(document.getElementById('debt-amount').value);
-            const isRecurring = document.getElementById('debt-recurring').checked;
-
-            if (name && amount) {
-                state.debts.push({ id: Date.now(), name, amount, isRecurring });
-                document.getElementById('debt-name').value = '';
-                document.getElementById('debt-amount').value = '';
-                document.getElementById('debt-recurring').checked = false;
-                renderDebts();
-                saveState();
-            }
-        }
-
-        function removeDebt(id) {
-            state.debts = state.debts.filter(d => d.id !== id);
-            renderDebts();
-            saveState();
-        }
-
-        function renderDebts() {
-            const list = document.getElementById('debts-list');
-            list.innerHTML = state.debts.map(d => `
-                <div class="flex justify-between items-center p-5 bg-white border rounded-2xl shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <div class="p-3 rounded-xl ${d.isRecurring ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}">
-                            <i class="fas ${d.isRecurring ? 'fa-sync-alt' : 'fa-credit-card'}"></i>
-                        </div>
-                        <div>
-                            <p class="font-black text-slate-800 uppercase text-xs">${d.name}</p>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${d.isRecurring ? 'Gasto Fijo' : 'Pago Único'}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <span class="font-mono font-black text-lg">$${d.amount}</span>
-                        <button onclick="removeDebt(${d.id})" class="text-slate-200 hover:text-red-500"><i class="fas fa-trash"></i></button>
-                    </div>
+    <!-- PRANK PAYWALL VIP MODAL ($1,000 USD Subscription) -->
+    <div id="paywallModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-50 flex items-center justify-center p-4 hidden">
+        
+        <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-2 border-amber-500/80 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl glow-gold relative overflow-hidden animate-in fade-in zoom-in duration-200">
+            
+            <!-- Badge Top -->
+            <div class="absolute -top-12 -right-12 w-28 h-28 bg-amber-500/20 rounded-full blur-2xl"></div>
+            
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-5">
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-400 text-xs font-black tracking-wider uppercase border border-amber-500/40">
+                        MEMBRESÍA VIP
+                    </span>
+                    <span class="text-xs text-slate-400">Bloqueo de Seguridad</span>
                 </div>
-            `).join('');
-        }
+                <div class="text-amber-400 font-bold text-xs animate-pulse">
+                    <i class="fa-solid fa-lock"></i> SERVICIO PREMIUM
+                </div>
+            </div>
 
-        function calculatePlan(shouldSave = true) {
-            const numPeriods = (state.mode === 'semanal') ? 4 : 2;
-            const grid = document.getElementById('results-grid');
-            grid.innerHTML = "";
+            <!-- VIP Offer Header -->
+            <div class="text-center my-2">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 text-3xl font-black mb-3 shadow-lg shadow-amber-500/30">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <h3 class="text-2xl font-extrabold text-white">Suscripción Requerida</h3>
+                <p class="text-xs text-slate-300 mt-1">
+                    Para habilitar el botón de <span class="text-amber-400 font-bold">APAGAR ALARMA</span> debes adquirir la suscripción Ultra VIP Anti-Flojera.
+                </p>
+            </div>
 
-            let periodData = Array.from({ length: numPeriods }, (_, i) => ({ id: i + 1, pagos: [], totalOut: 0 }));
+            <!-- Price Tag -->
+            <div class="my-5 p-4 rounded-2xl bg-slate-950/80 border border-amber-500/40 text-center relative">
+                <div class="text-xs text-amber-400 uppercase tracking-widest font-semibold mb-1">Costo de Desactivación</div>
+                <div class="font-digital text-4xl font-black text-white flex items-center justify-center gap-1">
+                    <span class="text-amber-400">$1,000.00</span> <span class="text-xs text-slate-400 font-sans font-normal">USD / Mes</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1">Se cobrará automáticamente a tu tarjeta de crédito o alma.</p>
+            </div>
 
-            state.debts.forEach((d, index) => {
-                if(d.isRecurring) {
-                    periodData.forEach(p => { p.pagos.push(d); p.totalOut += d.amount; });
-                } else {
-                    const targetPeriod = index % numPeriods;
-                    periodData[targetPeriod].pagos.push(d);
-                    periodData[targetPeriod].totalOut += d.amount;
-                }
-            });
+            <!-- Features list -->
+            <ul class="text-xs text-slate-300 space-y-2 mb-6">
+                <li class="flex items-center gap-2">
+                    <i class="fa-solid fa-check text-amber-400"></i> Silencio instantáneo por 24 horas.
+                </li>
+                <li class="flex items-center gap-2">
+                    <i class="fa-solid fa-check text-amber-400"></i> Evita que se derrama la taza de café por susto.
+                </li>
+                <li class="flex items-center gap-2">
+                    <i class="fa-solid fa-check text-amber-400"></i> Garantía de paz mental (sujeta a disponibilidad).
+                </li>
+            </ul>
 
-            let totalCleanOverall = 0;
-            periodData.forEach(p => {
-                const clean = state.income - p.totalOut;
-                totalCleanOverall += clean;
-                const color = (state.mode === 'semanal') ? 'indigo' : 'emerald';
+            <!-- Payment Action Buttons -->
+            <div class="space-y-3">
+                <button onclick="processPaywallPayment()" class="w-full py-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 text-slate-950 font-black text-base shadow-xl shadow-amber-500/25 hover:brightness-110 active:scale-98 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-credit-card"></i> PAGAR $1,000 USD Y APAGAR
+                </button>
+
+                <button onclick="showMathChallenge()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-brain text-amber-400"></i> Modo Pobre: Resolver Ecuación Quantum (Gratis)
+                </button>
+            </div>
+
+            <!-- Secret Bypass footnote -->
+            <div class="text-center mt-4">
+                <button onclick="secretEmergencyDismiss()" class="text-[10px] text-slate-500 underline hover:text-slate-400 transition">
+                    ¿No tienes $1,000 USD? Presiona aquí para el Pase de Emergencia Secreto
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- IMPOSSIBLE MATH CHALLENGE MODAL (POOR MODE) -->
+    <div id="mathModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <div class="w-12 h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mx-auto text-2xl mb-3">
+                <i class="fa-solid fa-calculator"></i>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-1">Ecuación de Desactivación Gratuita</h4>
+            <p class="text-xs text-slate-400 mb-4">Resuelve esto correctamente para apagar sin pagar $1,000 USD:</p>
+
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-digital text-amber-400 text-lg my-3">
+                ∫₀<sup>∞</sup> (e<sup>-x²</sup> · cos(3x) + √π) dx = ?
+            </div>
+
+            <input type="text" id="mathAnswerInput" placeholder="Ingresa el valor exacto..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-center text-sm text-white focus:outline-none focus:border-amber-500 mb-3">
+
+            <div id="mathError" class="text-xs text-red-400 hidden mb-3 font-semibold">
+                ❌ Respuesta incorrecta. La alarma seguirá sonando.
+            </div>
+
+    <!-- SUCCESS RECEIPT MODAL WITH mandatory 2 min ringing delay -->
+    <div id="receiptModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-amber-500/50 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
+            <div class="w-16 h-16 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto text-3xl mb-3 border border-amber-500/30">
+                <i class="fa-solid fa-spinner animate-spin"></i>
+            </div>
+            <h4 class="text-2xl font-black text-white">¡PAGO REGISTRADO!</h4>
+            <p class="text-xs text-amber-400 mt-1 font-semibold">Se debitaron $1,000.00 USD de tu tarjeta</p>
+            
+            <!-- Warning 2-minute penalty box -->
+            <div class="bg-red-950/80 p-4 rounded-2xl border border-red-500/40 text-center my-4">
+                <p class="text-xs text-red-300 font-bold uppercase tracking-wider mb-1">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> Validación Obligatoria
+                </p>
+                <p class="text-[11px] text-slate-300">
+                    Por políticas del contrato VIP, la alarma <span class="text-red-400 font-bold">debe sonar durante 2 minutos más</span> mientras se confirma la transferencia bancaria.
+                </p>
                 
-                const card = document.createElement('div');
-                card.className = "bg-white border-2 border-slate-100 rounded-[2.5rem] overflow-hidden flex flex-col shadow-lg";
-                card.innerHTML = `
-                    <div class="bg-slate-50 p-6 flex justify-between items-center border-b">
-                        <span class="w-10 h-10 bg-${color}-500 rounded-xl flex items-center justify-center text-white font-black">${p.id}</span>
-                        <h3 class="font-black text-slate-900 uppercase text-xs">${state.mode} ${p.id}</h3>
-                    </div>
-                    <div class="p-6 flex-1 space-y-2">
-                        ${p.pagos.map(item => `<div class="flex justify-between text-[10px] font-bold uppercase"><span>${item.name}</span><span>$${item.amount}</span></div>`).join('')}
-                    </div>
-                    <div class="p-6 bg-slate-900 text-white">
-                        <div class="flex justify-between items-end border-t border-white/10 pt-4">
-                            <span class="text-[10px] font-black text-${color}-400 uppercase">Saldo Limpio</span>
-                            <span class="text-3xl font-black">$${clean}</span>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
+                <div id="vipPenaltyCountdown" class="font-digital text-4xl font-black text-red-400 my-3 tracking-widest drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                    02:00
+                </div>
+                <p class="text-[10px] text-red-300/80">No puedes apagar la alarma hasta que termine el conteo.</p>
+            </div>
 
-            const avgClean = totalCleanOverall / numPeriods;
-            const suggested = Math.floor(avgClean * 0.4);
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-left text-[11px] space-y-1.5 mb-4 text-slate-300 font-mono">
+                <div class="flex justify-between"><span>Concepto:</span> <span class="text-white">Suscripción VIP Anti-Flojera</span></div>
+                <div class="flex justify-between"><span>Monto:</span> <span class="text-amber-400 font-bold">$1,000.00 USD</span></div>
+                <div class="flex justify-between"><span>Estado:</span> <span class="text-amber-400 animate-pulse">Verificando en Blockchain...</span></div>
+            </div>
 
-            document.getElementById('saving-card').style.backgroundColor = (state.mode === 'semanal') ? '#4f46e5' : '#059669';
-            document.getElementById('saving-title').innerText = "Tu Ahorro " + state.mode;
-            document.getElementById('suggested-saving').innerText = "$" + suggested;
-            document.getElementById('saving-goal-label').innerText = "Meta: " + state.goalName;
+            <button id="btnFinishReceipt" disabled onclick="finishReceiptProcess()" class="w-full py-3.5 rounded-xl bg-slate-800 text-slate-500 font-black text-sm transition cursor-not-allowed border border-slate-700">
+                <i class="fa-solid fa-lock mr-2"></i> ESPERA 2 MINUTOS PARA APAGAR
+            </button>
+        </div>
+    </div>
 
-            updateProgress();
-            if(shouldSave) goToStep(4);
+    <!-- Footer -->
+    <footer class="w-full border-t border-slate-900 py-4 text-center text-xs text-slate-600">
+        <p>UltraAlarm VIP System &copy; 2026 - Diseñado para no volverse a dormir jamás.</p>
+    </footer>
+
+    <!-- AUDIO & LOGIC JAVASCRIPT -->
+    <script>
+        // State variables
+        let currentTab = 'timer'; // 'timer' | 'clock'
+        let timerInterval = null;
+        let clockCheckerInterval = null;
+        let remainingSeconds = 10;
+        let isRunning = false;
+        let isRinging = false;
+        let alarmTargetTime = null;
+
+        // Audio Context Synthesizer (No external MP3 files required!)
+        let audioCtx = null;
+        let soundOscillatorInterval = null;
+
+        // Initialize Live Clock
+        function updateLiveClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('es-ES', { hour12: false });
+            document.getElementById('liveClock').textContent = timeString;
+
+            // Check specific alarm time if active
+            if (currentTab === 'clock' && isRunning && alarmTargetTime) {
+                const currentSecs = Math.floor(now.getTime() / 1000);
+                const targetSecs = Math.floor(alarmTargetTime.getTime() / 1000);
+                const diff = targetSecs - currentSecs;
+
+                if (diff > 0) {
+                    const hrs = Math.floor(diff / 3600);
+                    const mins = Math.floor((diff % 3600) / 60);
+                    const secs = diff % 60;
+                    document.getElementById('alarmClockCountdown').textContent = 
+                        `Faltan: ${hrs > 0 ? hrs + 'h ' : ''}${mins}m ${secs}s para activar.`;
+                } else {
+                    document.getElementById('alarmClockCountdown').textContent = "¡Tiempo alcanzado!";
+                    triggerAlarm();
+                }
+            }
         }
+        setInterval(updateLiveClock, 1000);
+        updateLiveClock();
 
-        function registerManualSave() {
-            const input = document.getElementById('manual-save-input');
-            const val = parseFloat(input.value);
-            if(!isNaN(val)) {
-                state.totalSaved += val;
-                input.value = "";
-                updateProgress();
-                saveState();
+        // Switch between Countdown Timer and Fixed Clock Time
+        function switchTab(tab) {
+            if (isRunning) return; // Prevent switching while active
+            currentTab = tab;
+
+            const tabTimer = document.getElementById('tabTimer');
+            const tabClock = document.getElementById('tabClock');
+            const timerView = document.getElementById('timerView');
+            const clockView = document.getElementById('clockView');
+
+            if (tab === 'timer') {
+                tabTimer.className = "flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md";
+                tabClock.className = "flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-300 text-slate-400 hover:text-slate-200";
+                timerView.classList.remove('hidden');
+                timerView.classList.add('flex');
+                clockView.classList.add('hidden');
+                clockView.classList.remove('flex');
+            } else {
+                tabClock.className = "flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md";
+                tabTimer.className = "flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-300 text-slate-400 hover:text-slate-200";
+                clockView.classList.remove('hidden');
+                clockView.classList.add('flex');
+                timerView.classList.add('hidden');
+                timerView.classList.remove('flex');
+
+                // Default clock time to current time + 1 min
+                const now = new Date();
+                now.setMinutes(now.getMinutes() + 1);
+                const hh = String(now.getHours()).padStart(2, '0');
+                const mm = String(now.getMinutes()).padStart(2, '0');
+                document.getElementById('alarmTimeInput').value = `${hh}:${mm}:00`;
             }
         }
 
-        function updateProgress() {
-            const percent = Math.min(100, (state.totalSaved / state.goalTarget) * 100).toFixed(1);
-            document.getElementById('current-saved-val').innerText = state.totalSaved;
-            document.getElementById('percent-val').innerText = percent + "%";
-            document.getElementById('progress-bar').style.width = percent + "%";
+        function setTimerPreset(seconds) {
+            if (isRunning) return;
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('inputMinutes').value = mins;
+            document.getElementById('inputSeconds').value = secs;
+            updateTimerDisplayFromInputs();
         }
 
-        function resetData() {
-            if(confirm("¿Seguro que quieres borrar todos los datos?")) {
-                localStorage.removeItem('miCapitalData');
-                location.reload();
+        function updateTimerDisplayFromInputs() {
+            const mins = parseInt(document.getElementById('inputMinutes').value) || 0;
+            const secs = parseInt(document.getElementById('inputSeconds').value) || 0;
+            const total = (mins * 60) + secs;
+            
+            const displayMins = String(Math.floor(total / 60)).padStart(2, '0');
+            const displaySecs = String(total % 60).padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `00:${displayMins}:${displaySecs}`;
+        }
+
+        document.getElementById('inputMinutes').addEventListener('input', updateTimerDisplayFromInputs);
+        document.getElementById('inputSeconds').addEventListener('input', updateTimerDisplayFromInputs);
+
+        // Web Audio Synthesizer Functions
+        function playSynthesizedSound() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const soundType = document.getElementById('soundType').value;
+
+            if (soundType === 'nuclear') {
+                // Siren sweep
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+
+            } else if (soundType === 'retro') {
+                // 8-bit Beep
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.01, audioCtx.currentTime + 0.15);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+
+            } else if (soundType === 'annoying') {
+                // Dual tone bugle
+                [600, 900].forEach(freq => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                });
+
+            } else {
+                // Techno pulse
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            }
+        }
+
+        function startRingingSound() {
+            stopRingingSound();
+            playSynthesizedSound();
+            soundOscillatorInterval = setInterval(playSynthesizedSound, 400);
+        }
+
+        function stopRingingSound() {
+            if (soundOscillatorInterval) {
+                clearInterval(soundOscillatorInterval);
+                soundOscillatorInterval = null;
+            }
+        }
+
+        // Start Alarm System
+        function startAlarmSystem() {
+            // Unlock Audio Context on user click
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (currentTab === 'timer') {
+                const mins = parseInt(document.getElementById('inputMinutes').value) || 0;
+                const secs = parseInt(document.getElementById('inputSeconds').value) || 0;
+                remainingSeconds = (mins * 60) + secs;
+
+                if (remainingSeconds <= 0) {
+                    alertModal("Error", "Ingresa un tiempo superior a 0 segundos.");
+                    return;
+                }
+
+                isRunning = true;
+                updateButtonsUI();
+                document.getElementById('statusBadge').textContent = "CUENTA REGRESIVA ACTIVA";
+                document.getElementById('statusBadge').className = "text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 mb-6 border border-amber-500/40 animate-pulse";
+                document.getElementById('timerControlsInput').classList.add('opacity-40', 'pointer-events-none');
+
+                timerInterval = setInterval(() => {
+                    remainingSeconds--;
+                    const displayMins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+                    const displaySecs = String(remainingSeconds % 60).padStart(2, '0');
+                    document.getElementById('timerDisplay').textContent = `00:${displayMins}:${displaySecs}`;
+
+                    if (remainingSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        triggerAlarm();
+                    }
+                }, 1000);
+
+            } else {
+                // Fixed Time Alarm
+                const timeValue = document.getElementById('alarmTimeInput').value;
+                if (!timeValue) {
+                    alertModal("Error", "Selecciona una hora válida.");
+                    return;
+                }
+
+                const now = new Date();
+                const parts = timeValue.split(':');
+                const target = new Date();
+                target.setHours(parseInt(parts[0]));
+                target.setMinutes(parseInt(parts[1]));
+                target.setSeconds(parts[2] ? parseInt(parts[2]) : 0);
+
+                // If target is earlier than now, set for tomorrow
+                if (target <= now) {
+                    target.setDate(target.getDate() + 1);
+                }
+
+                alarmTargetTime = target;
+                isRunning = true;
+                updateButtonsUI();
+                document.getElementById('statusBadge').textContent = "HORA PROGRAMADA ACTIVA";
+                document.getElementById('statusBadge').className = "text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 mb-6 border border-blue-500/40 animate-pulse";
+                document.getElementById('alarmTimeInput').disabled = true;
+            }
+        }
+
+        function cancelAlarmSystem() {
+            if (timerInterval) clearInterval(timerInterval);
+            isRunning = false;
+            alarmTargetTime = null;
+            updateButtonsUI();
+            
+            document.getElementById('statusBadge').textContent = "SISTEMA LISTO";
+            document.getElementById('statusBadge').className = "text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full bg-slate-800 text-slate-400 mb-6 border border-slate-700";
+            document.getElementById('timerControlsInput').classList.remove('opacity-40', 'pointer-events-none');
+            document.getElementById('alarmTimeInput').disabled = false;
+            document.getElementById('alarmClockCountdown').textContent = "";
+            updateTimerDisplayFromInputs();
+        }
+
+        function updateButtonsUI() {
+            const btnStart = document.getElementById('btnStart');
+            const btnCancel = document.getElementById('btnCancel');
+            if (isRunning) {
+                btnStart.classList.add('hidden');
+                btnCancel.classList.remove('hidden');
+            } else {
+                btnStart.classList.remove('hidden');
+                btnCancel.classList.add('hidden');
+            }
+        }
+
+        // TRIGGER ALARM
+        function triggerAlarm() {
+            isRinging = true;
+            startRingingSound();
+            document.getElementById('alarmRingingOverlay').classList.remove('hidden');
+        }
+
+        // PRANK PAYWALL ACTIONS
+        function openPaywallModal() {
+            document.getElementById('paywallModal').classList.remove('hidden');
+        }
+
+        let vipPenaltyTimer = null;
+        let vipPenaltySeconds = 120; // 2 minutes mandatory sound delay
+
+        function processPaywallPayment() {
+            // Hide paywall modal
+            document.getElementById('paywallModal').classList.add('hidden');
+            
+            // Show receipt / penalty modal
+            document.getElementById('receiptModal').classList.remove('hidden');
+            
+            // Keep sound ringing! Alarm stays active for 2 full minutes (120s)
+            vipPenaltySeconds = 120;
+            updateVipPenaltyDisplay();
+
+            const btnFinish = document.getElementById('btnFinishReceipt');
+            if (btnFinish) {
+                btnFinish.disabled = true;
+                btnFinish.className = "w-full py-3.5 rounded-xl bg-slate-800 text-slate-500 font-black text-sm transition cursor-not-allowed border border-slate-700";
+                btnFinish.innerHTML = `<i class="fa-solid fa-lock mr-2"></i> ESPERA 2 MINUTOS PARA APAGAR`;
+            }
+
+            if (vipPenaltyTimer) clearInterval(vipPenaltyTimer);
+            vipPenaltyTimer = setInterval(() => {
+                vipPenaltySeconds--;
+                updateVipPenaltyDisplay();
+
+                if (vipPenaltySeconds <= 0) {
+                    clearInterval(vipPenaltyTimer);
+                    if (btnFinish) {
+                        btnFinish.disabled = false;
+                        btnFinish.className = "w-full py-3.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-sm hover:bg-emerald-400 transition shadow-lg shadow-emerald-500/20 cursor-pointer animate-pulse";
+                        btnFinish.innerHTML = `<i class="fa-solid fa-power-off mr-2"></i> APAGAR ALARMA AHORA`;
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateVipPenaltyDisplay() {
+            const mins = String(Math.floor(vipPenaltySeconds / 60)).padStart(2, '0');
+            const secs = String(vipPenaltySeconds % 60).padStart(2, '0');
+            const display = document.getElementById('vipPenaltyCountdown');
+            if (display) {
+                display.textContent = `${mins}:${secs}`;
+            }
+        }
+
+        function finishReceiptProcess() {
+            if (vipPenaltySeconds > 0) return; // Prevent stopping before 2 mins
+            if (vipPenaltyTimer) clearInterval(vipPenaltyTimer);
+            stopRingingSound();
+            document.getElementById('receiptModal').classList.add('hidden');
+            document.getElementById('alarmRingingOverlay').classList.add('hidden');
+            cancelAlarmSystem();
+        }
+
+        function showMathChallenge() {
+            document.getElementById('paywallModal').classList.add('hidden');
+            document.getElementById('mathModal').classList.remove('hidden');
+            document.getElementById('mathError').classList.add('hidden');
+            document.getElementById('mathAnswerInput').value = '';
+        }
+
+        function backToPaywall() {
+            document.getElementById('mathModal').classList.add('hidden');
+            document.getElementById('paywallModal').classList.remove('hidden');
+        }
+
+        function verifyMathAnswer() {
+            // No matter what they put, fail them for humor!
+            const errorElement = document.getElementById('mathError');
+            errorElement.classList.remove('hidden');
+            errorElement.textContent = "❌ Respuesta incorrecta. La constante cuántica es incoherente. Elige la opción de $1,000 USD.";
+        }
+
+        function secretEmergencyDismiss() {
+            stopRingingSound();
+            document.getElementById('paywallModal').classList.add('hidden');
+            document.getElementById('alarmRingingOverlay').classList.add('hidden');
+            cancelAlarmSystem();
+        }
+
+        // Utility alert replacement (no native alert window)
+        function alertModal(title, msg) {
+            const div = document.createElement('div');
+            div.className = "fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4";
+            div.innerHTML = `
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-xs w-full text-center shadow-xl">
+                    <h5 class="text-white font-bold text-base mb-2">${title}</h5>
+                    <p class="text-slate-400 text-xs mb-4">${msg}</p>
+                    <button onclick="this.closest('.fixed').remove()" class="w-full py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Aceptar</button>
+                </div>
+            `;
+            document.body.appendChild(div);
         }
     </script>
 </body>
